@@ -1,6 +1,6 @@
-# Scripts to generate passwords for the ICPC World Finals Dhaka
+# Scripts to generate passwords for ICPC contests
 
-This directory contains all scripts to generate passwords for the ICPC World Finals in Dhaka.
+This directory contains all scripts to generate passwords for ICPC contests.
 
 ## Requirements
 
