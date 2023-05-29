@@ -1,0 +1,74 @@
+#
+# Sample CDS accounts (username name), servers and URLs
+#
+servers:
+- name: cds
+  url: https://10.3.3.207
+- name: live
+  url: https://10.3.3.207:7443
+- name: p100
+  url: https://10.3.3.207:9443
+- name: resolver
+  url: https://10.3.3.207:8443
+# All accounts that need access to the CDS'es
+accounts:
+- name: Presentation Admin
+  username: presAdmin
+  type: presAdmin
+  servers: [cds, p100]
+- name: Balloon Printing
+  username: balloon
+  type: ballon
+  servers: [cds]
+- name: Presentations
+  username: presentation
+  type: public
+  servers: [cds, p100]
+- name: Coach view
+  username: coachview
+  type: public
+  servers: [cds, p100]
+- name: Analytics
+  username: analytics
+  type: analyst
+  servers: [cds]
+- name: Analytics Git Homes
+  username: analyticsGitHomes
+  type: staff
+  servers: [cds]
+- name: John Clevenger
+  username: clevengr
+  type: admin
+  servers: [cds, p100, resolver]
+- name: Tim deBoer
+  username: deboer
+  type: admin
+  servers: [cds, live, p100, resolver]
+- name: Nicky Gerritsen
+  username: nicky
+  type: admin
+  servers: [cds, live, p100, resolver]
+- name: David Sturgill
+  username: david
+  type: admin
+  servers: [cds, live, p100, resolver]
+- name: Keith Johnson
+  username: keith
+  type: admin
+  servers: [cds, live, p100, resolver]
+- name: Matvey Kazakov
+  username: matvey
+  type: public
+  servers: [cds]
+- name: ICPC Live
+  username: live
+  type: analyst
+  servers: [cds]
+- name: Administrator
+  username: admin
+  type: admin
+  servers: [p100]
+- name: Resolver
+  username: resolver
+  type: staff
+  servers: [resolver]
