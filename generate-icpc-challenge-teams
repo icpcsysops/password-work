@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import json
+import os.path
+import icpcpwutils
+import yaml
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter,
+    description='Generate passwords files for ICPC challenge.')
+parser.add_argument('-c', '--ccs-name', help='Name of the CCS to use.', default='DOMJudge')
+parser.add_argument('-l', '--ccs-link', help='Link for the CCS.', default='')
+parser.add_argument('-f', '--footer-text', help='Text to put on the bottom of password sheets.', default='')
+parser.add_argument('-T', '--title-text', help='Text to put on the title of password sheets.', default='')
+parser.add_argument('-b', '--banner-file', help='File to use as banner for password sheets.', default='')
+parser.add_argument('-m', '--master-file', help='Also generate a master PDF. Will not be generated if not set.', action='store_true')
+parser.add_argument('teams', help='JSON file with the team information.')
+parser.add_argument('icpc_challenge_teams', help='JSON file with the ICPC challenge team information.')
+parser.add_argument('output_dir', help='Directory to store output files.')
+
+args = parser.parse_args()
+
+if not os.path.isdir(args.output_dir):
+    print(f'{args.output_dir} is not an existing directory, creating...')
+    os.makedirs(args.output_dir, exist_ok=True)
+
+password_file = f'{args.output_dir}/teams.accounts.txt'
+
+if os.path.exists(password_file):
+    with open(password_file) as f:
+        existing_accounts = {}
+        for u in f.read().splitlines():
+            line = u.split("\t")
+            existing_accounts[line[0]] = line[1]
+else:
+    existing_accounts = {}
+
+account_data = []
+
+with open(args.icpc_challenge_teams) as f:
+    icpc_challenge_teams = json.load(f)
+with open(args.teams) as f:
+    teams = {int(t["id"]): t for t in json.load(f)}
+for team in icpc_challenge_teams:
+    real_team = teams[int(team["id"])]
+    username = "team%s" % team["id"]
+    password = existing_accounts.get(username, icpcpwutils.generate_password())
+    account_data.append({
+        "username": username,
+        "password": password,
+        "name": team["display_name"],
+        "type": "team",
+    })
+    if real_team["display_name"] != account_data[-1]["name"]:
+        print("===>", real_team["display_name"])
+        print("    ", account_data[-1]["name"])
+
+unix_accounts_yaml_file = f'{args.output_dir}/unix-accounts.yaml'
+with open(unix_accounts_yaml_file,'w') as f:
+    accounts = {"data": {account["username"]: account["password"] for account in account_data}}
+    yaml.safe_dump(accounts, f)
+    print(f'unix-accounts.yaml written to {unix_accounts_yaml_file}')
+
+with open(password_file, 'w') as f:
+    writer = csv.writer(f, delimiter='\t')
+    for account in account_data:
+        writer.writerow([account['username'], account['password']])
+
+    print(f'CCS / Unix password info written to {password_file}')
+
+accounts_tsv_file = f'{args.output_dir}/teams.accounts.tsv'
+with open(accounts_tsv_file,'w') as f:
+    writer = csv.writer(f, delimiter='\t')
+    writer.writerow(['accounts', 1])
+    for account in account_data:
+        writer.writerow([
+            account['type'],
+            account['name'],
+            account['username'],
+            account['password']
+        ])
+
+    print(f'CCS accounts.tsv written to {accounts_tsv_file}')
+
+sheet_variables = {
+    'accounts': account_data,
+    'title': args.title_text,
+    'footer': args.footer_text,
+    'ccs': args.ccs_name,
+}
+
+if args.banner_file:
+    sheet_variables['banner'] = os.path.abspath(args.banner_file)
+if args.ccs_link:
+    sheet_variables['link'] = args.ccs_link
+
+team_sheets_file = f'{args.output_dir}/teams_password_sheets.pdf'
+
+icpcpwutils.generate_template_to_pdf(
+    'ccs-sheets-template.html',
+    sheet_variables,
+    team_sheets_file
+)
+print(f'Password sheet file written to {team_sheets_file}')
+
+def chunked(data: list, per_chunk: int) -> list:
+    return [data[i:i+per_chunk] for i in range(0, len(data), per_chunk)]
+
+if args.master_file:
+    rows_per_page = 39
+    columns_per_page = 3
+    per_page = rows_per_page * columns_per_page
+    pages = [chunked(page, rows_per_page) for page in chunked(account_data, rows_per_page * columns_per_page)]
+    master_file = f'{args.output_dir}/teams_contest_master.pdf'
+    icpcpwutils.generate_template_to_pdf(
+        'icpc-challenge-master-template.html',
+        {
+            'pages': pages,
+            'num_columns': columns_per_page,
+            'date': icpcpwutils.today_formated(),
+            'title': args.title_text,
+            'footer': args.footer_text,
+        },
+        master_file,
+        orientation='Landscape'
+    )
+    print(f'Master file written to {master_file}')

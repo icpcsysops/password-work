@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+import argparse
+import csv
+import json
+import os.path
+import icpcpwutils
+import yaml
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawTextHelpFormatter,
+    description='Generate passwords files for ICPC challenge.')
+parser.add_argument("-C", "--coaches", help="Generate the PDF for the coaches.")
+parser.add_argument('-c', '--ccs-name', help='Name of the CCS to use.', default='DOMjudge')
+parser.add_argument('-l', '--ccs-link', help='Link for the CCS.', default='')
+parser.add_argument('-f', '--footer-text', help='Text to put on the bottom of password sheets.', default='')
+parser.add_argument('-T', '--title-text', help='Text to put on the title of password sheets.', default='')
+parser.add_argument('-b', '--banner-file', help='File to use as banner for password sheets.', default='')
+parser.add_argument('-m', '--master-file', help='Also generate a master PDF. Will not be generated if not set.', action='store_true')
+parser.add_argument('teams', help='JSON file with the team information.')
+parser.add_argument('icpc_challenge_coaches', help='JSON file with the ICPC challenge coach information.')
+parser.add_argument('output_dir', help='Directory to store output files.')
+
+args = parser.parse_args()
+
+if not os.path.isdir(args.output_dir):
+    print(f'{args.output_dir} is not an existing directory, creating...')
+    os.makedirs(args.output_dir, exist_ok=True)
+
+account_data = []
+
+from pprint import pprint
+
+with open(args.teams) as f:
+    teams = {t["display_name"]: t for t in json.load(f)}
+
+with open(args.icpc_challenge_coaches) as f:
+    icpc_challenge_coaches = json.load(f)
+for coach in icpc_challenge_coaches:
+    account_data.append({
+        "username": "team%s" % coach["id"],
+        "password": icpcpwutils.generate_password(),
+        "name": coach["display_name"],
+        "university": "Coaches U",
+        "full_name": coach["display_name"],
+        "team_id": coach["id"],
+    })
+
+sheet_variables = {
+    'accounts': account_data,
+    'title': args.title_text,
+    'footer': args.footer_text,
+    'ccs': args.ccs_name,
+}
+
+if args.banner_file:
+    sheet_variables['banner'] = os.path.abspath(args.banner_file)
+if args.ccs_link:
+    sheet_variables['link'] = args.ccs_link
+
+team_sheets_file = f'{args.output_dir}/coaches_password_sheets.pdf'
+
+icpcpwutils.generate_template_to_pdf(
+    'icpc-challenge-coaches-template.html',
+    sheet_variables,
+    team_sheets_file
+)
+print(f'Password sheet file written to {team_sheets_file}')
+
+def chunked(data: list, per_chunk: int) -> list:
+    return [data[i:i+per_chunk] for i in range(0, len(data), per_chunk)]
+
+def save_coaches_master_file(account_data, file_name, subtitle):
+    rows_per_page = 40
+    columns_per_page = 1
+    per_page = rows_per_page * columns_per_page
+    pages = [chunked(page, rows_per_page) for page in chunked(account_data, rows_per_page * columns_per_page)]
+    master_file = f'{args.output_dir}/{file_name}'
+    icpcpwutils.generate_template_to_pdf(
+        'icpc-challenge-coaches-master-template.html',
+        {
+            'pages': pages,
+            'num_columns': columns_per_page,
+            'date': icpcpwutils.today_formated(),
+            'title': args.title_text,
+            'subtitle': subtitle,
+            'footer': args.footer_text,
+        },
+        master_file,
+        orientation='Landscape'
+    )
+    print(f'Master file written to {master_file}')
+
+
+if args.master_file:
+    save_coaches_master_file(
+        account_data,
+        "coaches_contest_master_by_full_name.pdf",
+        "(by full name)",
+    )
+    save_coaches_master_file(
+        sorted(account_data, key=lambda u: int(u["team_id"])),
+        "coaches_contest_master_by_team_id.pdf",
+        "(by team id)",
+    )
+
+accounts_tsv_file = f'{args.output_dir}/coaches.accounts.tsv'
+with open(accounts_tsv_file,'w') as f:
+    writer = csv.writer(f, delimiter='\t')
+    writer.writerow(['accounts', 1])
+    for account in account_data:
+        writer.writerow([
+            "team", 
+            account['name'],
+            account['username'],
+            account['password']
+        ])
+
+    print(f'CCS accounts.tsv written to {accounts_tsv_file}')
+
+# eof 
