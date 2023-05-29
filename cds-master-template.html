@@ -1,0 +1,62 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        div {
+            margin-bottom: 1em;
+        }
+
+        div, th, td {
+            font-size: 20px;
+        }
+
+        th, td {
+            padding-left: 4px;
+            padding-right: 4px;
+        }
+
+        th {
+            background-color: lightgray;
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1>CDS Master Password / URL List</h1>
+
+    <div>{{date}}</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>CDS server</th>
+                <th>username</th>
+                <th>type</th>
+                <th>password</th>
+                <th>name</th>
+                <th>url</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.server }}</td>
+                <td><code>{{ account.username }}</code></td>
+                <td>{{ account.type }}</td>
+                <td><code>{{ account.password }}</code></td>
+                <td>{{ account.name }}</td>
+                <td><a href="{{ account.url }}">{{ account.url }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>

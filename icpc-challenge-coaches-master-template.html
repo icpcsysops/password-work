@@ -1,0 +1,117 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        div.page {
+            position: relative;
+            height: 950px;
+        }
+
+        h1 {
+            margin-bottom: 0;
+        }
+
+        div.page-break {
+            page-break-after: always;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        table td, table th {
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+
+        table .username {
+            text-align: right;
+        }
+
+        table .password {
+            text-align: left;
+        }
+
+        table .first {
+            border-left: 1px solid black;
+        }
+
+        table .last {
+            border-right: 1px solid black;
+        }
+
+        tr {
+            page-break-inside: avoid !important;
+        }
+
+        div.bottom-left {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: left;
+        }
+
+        div.bottom-center {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: center;
+        }
+
+        div.bottom-right {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: right;
+        }
+
+        .align-center {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+
+<body>
+    {% for page in pages %}
+        <div class="page {% if not loop.last %}page-break{% endif %}">
+            <h1 class="align-center">{{ title }} <small>{{ subtitle }}</small></h1>
+            <div class="align-center">Master Password List</div>
+            <table>
+                <tr>
+                    {% for column in range(0, num_columns) %}
+                        <th class="password">Team ID</th>
+                        <th class="password">University</th>
+                        <th class="password">Full name</th>
+                        <th class="username">Username</th>
+                        <th class="password">Password</th>
+                    {% endfor %}
+                </tr>
+                {% for row in page[0] %}
+                    {% set row_loop = loop %}
+                    <tr>
+                        {% for column in range(0, num_columns) %}
+                            {% if page[column] and page[column][row_loop.index0] %}
+                                <td class="first"><code>{{ page[column][row_loop.index0].team_id }}</code></td>
+                                <td class=""><code>{{ page[column][row_loop.index0].university }}</code></td>
+                                <td class=""><code>{{ page[column][row_loop.index0].full_name }}</code></td>
+                                <td class="username"><code>{{ page[column][row_loop.index0].username }}</code></td>
+                                <td class="password"><code>{{ page[column][row_loop.index0].password }}</code></td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </table>
+            <div class="bottom-left">{{ date }}</div>
+            <div class="bottom-center">{{ footer }}</div>
+            <div class="bottom-right">Page {{ loop.index }} of {{ pages | length }}</div>
+        </div>
+    {% endfor %}
+</body>
+
+</html>
