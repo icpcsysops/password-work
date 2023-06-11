@@ -18,7 +18,7 @@ accounts:
   servers: [cds, p100]
 - name: Balloon Printing
   username: balloon
-  type: ballon
+  type: balloon
   servers: [cds]
 - name: Presentations
   username: presentation
