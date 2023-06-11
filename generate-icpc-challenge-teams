@@ -99,7 +99,7 @@ if args.ccs_link:
 team_sheets_file = f'{args.output_dir}/teams_password_sheets.pdf'
 
 icpcpwutils.generate_template_to_pdf(
-    'ccs-sheets-template.html',
+    'templates/ccs-sheets.html',
     sheet_variables,
     team_sheets_file
 )
@@ -115,7 +115,7 @@ if args.master_file:
     pages = [chunked(page, rows_per_page) for page in chunked(account_data, rows_per_page * columns_per_page)]
     master_file = f'{args.output_dir}/teams_contest_master.pdf'
     icpcpwutils.generate_template_to_pdf(
-        'icpc-challenge-master-template.html',
+        'templates/icpc-challenge-master.html',
         {
             'pages': pages,
             'num_columns': columns_per_page,

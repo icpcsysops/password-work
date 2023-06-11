@@ -85,8 +85,8 @@ ycheck: cds-config.yaml other-accounts.yaml
 	@echo "PASSES - other accounts (yaml) files found"
 
 # check for input html templates
-hcheck: ccs-master-template.html ccs-sheets-template.html cds-master-template.html cds-sheets-template.html \
-icpc-challenge-coaches-master-template.html icpc-challenge-coaches-template.html icpc-challenge-master-template.html
+hcheck: templates/ccs-master.html templates/ccs-sheets.html templates/cds-master.html templates/cds-sheets.html \
+templates/icpc-challenge-coaches-master.html templates/icpc-challenge-coaches.html templates/icpc-challenge-master.html
 	@echo PASSEs - template html files found
 
 # ------------------------------------------------------------
