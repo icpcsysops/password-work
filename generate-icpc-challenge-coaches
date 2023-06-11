@@ -61,7 +61,7 @@ if args.ccs_link:
 team_sheets_file = f'{args.output_dir}/coaches_password_sheets.pdf'
 
 icpcpwutils.generate_template_to_pdf(
-    'icpc-challenge-coaches-template.html',
+    'templates/icpc-challenge-coaches.html',
     sheet_variables,
     team_sheets_file
 )
@@ -77,7 +77,7 @@ def save_coaches_master_file(account_data, file_name, subtitle):
     pages = [chunked(page, rows_per_page) for page in chunked(account_data, rows_per_page * columns_per_page)]
     master_file = f'{args.output_dir}/{file_name}'
     icpcpwutils.generate_template_to_pdf(
-        'icpc-challenge-coaches-master-template.html',
+        'templates/icpc-challenge-coaches-master.html',
         {
             'pages': pages,
             'num_columns': columns_per_page,
