@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser, RawTextHelpFormatter
+from icpcpwutils import load_config, ask_or_argument
+from questionary import Choice
+
+config = load_config()
+
+subcommands = [
+    Choice('Contest passwords', 'contest'),
+    Choice('Challenge passwords', 'challenge'),
+    Choice('CDS passwords', 'cds'),
+]
+
+modes = [
+    Choice('Generate (overwrite) accounts and sheets', 'generate'),
+    Choice('Regenerate sheets, keep accounts', 'sheets'),
+    Choice('Add new accounts, regenerate sheets, but keep any existing accounts', 'append'),
+]
+
+parser = ArgumentParser(
+    formatter_class=RawTextHelpFormatter,
+    description='ICPC password utility')
+
+subparsers = parser.add_subparsers(dest='subcommand')
+
+for subcommand in subcommands:
+    sub_parser = subparsers.add_parser(subcommand.value, help=subcommand.title)
+
+    if subcommand.value == 'contest':
+        sub_parser.add_argument('contest', help='Contest to use', nargs='?')
+        sub_parser.add_argument('mode', help='Mode to use', nargs='?', choices=[m.value for m in modes])
+
+args = parser.parse_args()
+
+subcommand = ask_or_argument(args, 'subcommand', 'What do you want to do?', subcommands, 'Invalid subcommand')
+contest = None
+if subcommand == 'contest':
+    contests = [Choice(f'{c.config.name} starting at {c.config.start_time}', c.name) for c in config.contests]
+    contest_name = ask_or_argument(args, 'contest', 'What contest do you want to use?', contests, 'Invalid contest')
+    contest = next(c for c in config.contests if c.name == contest_name)
+    config.validate_contest(contest)
+
+    mode = ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
+elif subcommand == 'challenge':
+    config.validate_challenge()
+
+    mode = ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
+elif subcommand == 'cds':
+    config.validate_cds()
+
+    mode = ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
+
+print(subcommand, contest, mode)
