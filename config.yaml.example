@@ -1,0 +1,55 @@
+# Example configuration file for the password utility.
+# This file contains global configuration, CDS configuration, ICPC Challenge configuration and per contest settings.
+global_settings:
+  # Folder where the contests can be found. Relative to where this script is ran from.
+  contests_folder: ../contests
+  # Global footer to use. Can be overriden per contest.
+  footer: 2023 North America Championships
+  # Whether to also generate the accounts.tsv file. By default, this will not be done since it is a legacy file format.
+  # Can be overriden per contest.
+  generate_accounts_tsv: yes
+  # IP prefix to use for accounts in the CCS. Remove to not set IP addresses
+  ip_prefix: 10.0.0
+  # Additional account YAML files to load
+  additional_account_files:
+    - other-accounts.yaml
+cds:
+  # CDS config file to use
+  config: ../password-config/cds-config.yaml
+  # Folder where the CDS servers are configured. Setting this will create symlinks to accounts.yaml. Remove to skip.
+  servers_folder: ../servers
+challenge:
+  # The challenge requires you to set a title manually, since it's not linked to a contest in general.
+  # If the challenge IS a contest managed by the SysOps team, set it up as a normal contest
+  title: ICPC Challenge
+  # Location of the banner file to use.
+  banner: ../contests/finals/banner.jpg
+  account_types:
+    linux: ~
+    ccs:
+        name: Codeforces
+        link: https://icpcdhaka.contest.codeforces.com/
+  # The challenge mode only takes the following global settings into account:
+  # - footer
+  # - generate_accounts_tsv
+  # - ip_prefix
+  # You can also specify them explicitly here to override them
+contests:
+  -
+    # Name of the contest. Has to match the folder of the contest.
+    # These folders are relative to the contests_folder specified above.
+    # THe contest.yaml from the folder will be used to get the contest name.
+    name: finals
+    # Account types to use. Must be a dictionary where keys are the supported account types and the values are the
+    # configuration for that type. Valid account types are:
+    # - `linux`: use the account for Linux login. Value should be `~`, i.e. no configuration needed.
+    # - `ccs`: use the account for a CCS. Value should be a dictionary with two keys:
+    #   - `name`: name of the CCS
+    #   - `link`: link to the CCS
+    #   Both options are optional and the PDFs will use generic data if not supplied.
+    account_types:
+      linux: ~
+      ccs:
+          name: DOMjudge
+          link: https://domjudge/
+    # To override the global options, repeat them here.

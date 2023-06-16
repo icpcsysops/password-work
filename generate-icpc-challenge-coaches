@@ -81,7 +81,7 @@ def save_coaches_master_file(account_data, file_name, subtitle):
         {
             'pages': pages,
             'num_columns': columns_per_page,
-            'date': icpcpwutils.today_formated(),
+            'date': icpcpwutils.today_formatted(),
             'title': args.title_text,
             'subtitle': subtitle,
             'footer': args.footer_text,
