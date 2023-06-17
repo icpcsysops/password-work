@@ -5,7 +5,11 @@
     <style>
         div.page {
             position: relative;
-            height: 950px;
+            {% if page_size == 'A4' %}
+            height: 880px;
+            {% else %}
+            height: 910px;
+            {% endif %}
         }
 
         h1 {
@@ -80,7 +84,17 @@
                 <tr>
                     {% for column in range(0, num_columns) %}
                         <th class="username">Username</th>
-                        <th class="password">CCS / unix password</th>
+                        <th class="password">
+                            {% if ccs and linux %}
+                                {{ ccs }} / Linux password
+                            {% elif ccs %}
+                                {{ ccs }} password
+                            {% elif linux %}
+                                Linux password
+                            {% else %}
+                                Password
+                            {% endif %}
+                        </th>
                     {% endfor %}
                 </tr>
                 {% for row in page[0] %}
