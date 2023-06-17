@@ -15,7 +15,7 @@ class ContestObject(object):
     name: str
     start_time: str
 
-    def __init__(self, name: str, start_time: str):
+    def __init__(self, name: str, start_time: str) -> None:
         self.name = name
         self.start_time = start_time
 
@@ -26,7 +26,7 @@ class CcsConfig(object):
     name: typing.Optional[str]
     link: typing.Optional[str]
 
-    def __init__(self, name: typing.Optional[str] = None, link: typing.Optional[str] = None):
+    def __init__(self, name: typing.Optional[str] = None, link: typing.Optional[str] = None) -> None:
         self.name = name
         self.link = link
 
@@ -34,11 +34,12 @@ class CcsConfig(object):
 class AccountTypesConfig(object):
     """Object representing the account types from the configuration"""
 
-    linux: None
+    linux: bool = False
     ccs: CcsConfig
 
-    def __init__(self, linux: None, ccs: dict):
-        self.linux = linux
+    def __init__(self, linux: typing.Optional[bool], ccs: dict) -> None:
+        if linux:
+            self.linux = linux
         self.ccs = CcsConfig(**ccs)
 
 
@@ -51,11 +52,13 @@ class GlobalSettings(object):
     generate_accounts_tsv: typing.Optional[bool]
     ip_prefix: typing.Optional[bool]
     page_size: str
-    additional_account_files: typing.Optional[typing.Sequence[str]]
+    number_of_words_per_password: int
+    additional_account_files: typing.Sequence[str] = []
 
     def __init__(self, contests_folder: str, footer: typing.Optional[str] = None, account_types: dict = None,
                  generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[bool] = None,
-                 page_size: str = None, additional_account_files: typing.Optional[typing.Sequence[str]] = None):
+                 page_size: str = None, number_of_words_per_password: int = None,
+                 additional_account_files: typing.Optional[typing.Sequence[str]] = None) -> None:
         self.contests_folder = contests_folder
         self.footer = footer
         if account_types:
@@ -63,7 +66,9 @@ class GlobalSettings(object):
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
         self.page_size = page_size
-        self.additional_account_files = additional_account_files
+        self.number_of_words_per_password = number_of_words_per_password
+        if additional_account_files:
+            self.additional_account_files = additional_account_files
 
 
 class CdsConfig(object):
@@ -71,12 +76,35 @@ class CdsConfig(object):
 
     config: str
     servers_folder: typing.Optional[str]
+    banner: typing.Optional[str]
+    footer: typing.Optional[str]
     page_size: str
+    number_of_words_per_password: int
 
-    def __init__(self, config: str, servers_folder: typing.Optional[str] = None, page_size: str = None):
+    def __init__(self, config: str, servers_folder: typing.Optional[str] = None, banner: typing.Optional[str] = None,
+                 footer: typing.Optional[str] = None, page_size: str = None,
+                 number_of_words_per_password: int = None) -> None:
         self.config = config
         self.servers_folder = servers_folder
+        self.banner = banner
+        self.footer = footer
         self.page_size = page_size
+        self.number_of_words_per_password = number_of_words_per_password
+
+
+class ChallengeAccountFileConfig(object):
+    """Object representing account file configuration for the Challenge"""
+
+    teams_file: str
+    organizations_file: typing.Optional[str]
+    add_organization: bool = False
+
+    def __init__(self, teams_file: str, organizations_file: typing.Optional[str] = None,
+                 add_organization: typing.Optional[bool] = None) -> None:
+        self.teams_file = teams_file
+        self.organizations_file = organizations_file
+        if self.add_organization:
+            self.add_organization = add_organization
 
 
 class ChallengeConfig(object):
@@ -89,10 +117,13 @@ class ChallengeConfig(object):
     generate_accounts_tsv: typing.Optional[bool]
     ip_prefix: typing.Optional[bool]
     page_size: str
+    number_of_words_per_password: int
+    account_files: typing.Sequence[ChallengeAccountFileConfig]
 
     def __init__(self, title: str, banner: typing.Optional[str] = None, account_types: dict = None,
                  footer: typing.Optional[str] = None, generate_accounts_tsv: typing.Optional[bool] = None,
-                 ip_prefix: typing.Optional[bool] = None, page_size: str = None):
+                 ip_prefix: typing.Optional[bool] = None, page_size: str = None,
+                 number_of_words_per_password: int = None, account_files: typing.Sequence[dict] = None) -> None:
         self.title = title
         self.banner = banner
         self.account_types = AccountTypesConfig(**account_types)
@@ -100,6 +131,9 @@ class ChallengeConfig(object):
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
         self.page_size = page_size
+        self.number_of_words_per_password = number_of_words_per_password
+        if account_files:
+            self.account_files = [ChallengeAccountFileConfig(**account_file) for account_file in account_files]
 
 
 class ContestConfig(object):
@@ -110,6 +144,7 @@ class ContestConfig(object):
     generate_accounts_tsv: typing.Optional[bool]
     ip_prefix: typing.Optional[bool]
     page_size: str
+    number_of_words_per_password: int
     additional_account_files: typing.Optional[typing.Sequence[str]]
     account_types: AccountTypesConfig = None
     config: ContestObject
@@ -117,13 +152,15 @@ class ContestConfig(object):
 
     def __init__(self, name: str = None, footer: typing.Optional[str] = None,
                  generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[bool] = None,
-                 page_size: str = None, additional_account_files: typing.Optional[typing.Sequence[str]] = None,
-                 account_types: dict = None):
+                 page_size: str = None, number_of_words_per_password: int = None,
+                 additional_account_files: typing.Optional[typing.Sequence[str]] = None,
+                 account_types: dict = None) -> None:
         self.name = name
         self.footer = footer
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
         self.page_size = page_size
+        self.number_of_words_per_password = number_of_words_per_password
         self.additional_account_files = additional_account_files
         if account_types:
             self.account_types = AccountTypesConfig(**account_types)
@@ -140,7 +177,7 @@ class Config(object):
     contests: typing.Sequence[ContestConfig] = []
 
     def __init__(self, global_settings: dict, cds: typing.Optional[dict] = None,
-                 challenge: typing.Optional[dict] = None, contests: typing.Sequence[dict] = None):
+                 challenge: typing.Optional[dict] = None, contests: typing.Sequence[dict] = None) -> None:
         self.global_config = GlobalSettings(**global_settings)
         if cds:
             self.cds = CdsConfig(**cds)
@@ -190,6 +227,11 @@ class Config(object):
 
         if not contest.page_size and not self.global_config.page_size:
             print(f'Page size missing for contest {contest.name}')
+            exit(1)
+
+        if not contest.number_of_words_per_password and not self.global_config.number_of_words_per_password:
+            print(f'Number pf words per password missing for contest {contest.name}')
+            exit(1)
 
     def validate_cds(self) -> None:
         if not self.cds:
@@ -210,6 +252,11 @@ class Config(object):
 
         if not self.cds.page_size and not self.global_config.page_size:
             print('Page size missing for CDS')
+            exit(1)
+
+        if not self.cds.number_of_words_per_password and not self.global_config.number_of_words_per_password:
+            print('Number of words per password missing for CDS')
+            exit(1)
 
     def validate_challenge(self) -> None:
         if not self.challenge:
@@ -224,8 +271,46 @@ class Config(object):
             print('Account types missing for Challenge')
             exit(1)
 
+        if not self.challenge.account_files:
+            print('Account files missing for Challenge')
+            exit(1)
+
         if not self.challenge.page_size and not self.global_config.page_size:
             print('Page size missing for Challenge')
+            exit(1)
+
+        if not self.challenge.number_of_words_per_password and not self.global_config.number_of_words_per_password:
+            print('Number of words per password missing for Challenge')
+            exit(1)
+
+
+class Account(object):
+    id: str
+    name: str
+    type: str
+    username: str
+    team_id: typing.Optional[str]
+    ip: typing.Optional[str]
+    password: typing.Optional[str] = None
+
+    def __init__(self, id: str, name: str, type: str, username: str, team_id: typing.Optional[str] = None,
+                 ip: typing.Optional[str] = None, password: typing.Optional[str] = None) -> None:
+        self.id = id
+        self.name = name
+        self.type = type
+        self.username = username
+        if team_id is not None:
+            self.team_id = team_id
+        if ip is not None:
+            self.ip = ip
+        self.password = password
+
+    def generate_password(self, num_words: int) -> None:
+        """Generate a random password using the xkcdpass library with the provider number of words"""
+
+        wordfile = xkcdpass.xkcd_password.locate_wordfile()
+        password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile=wordfile, min_length=4, max_length=6)
+        self.password = xkcdpass.xkcd_password.generate_xkcdpassword(password_words, delimiter='-', numwords=num_words)
 
 
 def load_config() -> Config:
@@ -252,15 +337,50 @@ def ask_or_argument(args: argparse.Namespace, argument: str, title: str, choices
     return choice
 
 
-def generate_password() -> str:
-    """Generate a random password using the xkcdpass library with 4 words"""
+def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
+                  accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:
+    if not os.path.isfile(file):
+        return {}
 
-    wordfile = xkcdpass.xkcd_password.locate_wordfile()
-    password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile=wordfile, min_length=4, max_length=6)
-    return xkcdpass.xkcd_password.generate_xkcdpassword(password_words, delimiter='-', numwords=3)
+    if accounts is None:
+        accounts = {}
+
+    accounts_data = get_yaml_file_contests(file)
+    for account in accounts_data:
+        id = account.get('id', account['username'])
+        ip = None
+        if account['type'] == 'team' and id.isdigit() and ip_prefix is not None:
+            ip = f'{ip_prefix}.{id}'
+        account = Account(id, account['name'], account['type'], account['username'], None, ip,
+                          account.get('password', None))
+        if not account.password:
+            account.generate_password(number_of_words_per_password)
+
+        accounts[account.username] = account
+
+    return accounts
 
 
-def get_yaml_file_contests(file: str) -> dict:
+def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
+                      ip_prefix: typing.Optional[str] = None) -> typing.Dict[str, Account]:
+    team_data: typing.Sequence[dict] = get_yaml_file_contests(file)
+    for team in team_data:
+        team_id = team['id']
+        username = f'team{team_id}'
+        if username in accounts:
+            accounts[username].team_id = team_id
+        else:
+            ip = None
+            if ip_prefix is not None:
+                ip = f'{ip_prefix}.{team_id}'
+            account = Account(username, team.get('display_name', team['name']), 'team', username, team_id, ip)
+            account.generate_password(number_of_words_per_password)
+            accounts[username] = account
+
+    return accounts
+
+
+def get_yaml_file_contests(file: str):
     """Read the given YAML (or JSON) file and return it's content"""
 
     if not os.path.isfile(file):
@@ -284,14 +404,14 @@ def write_yaml_file(file: str, content: dict) -> None:
         yaml.dump(content, yaml_file)
 
 
-def generate_template_to_pdf(template_file: str, content: dict, output_file: str,
+def generate_template_to_pdf(template_file: str, sheet_variables: dict, output_file: str,
                              page_size: str, orientation: str = 'Portrait') -> None:
     """Write the given content using the given template to the output file as PDF"""
 
     template_loader = jinja2.FileSystemLoader(searchpath=f'{os.path.dirname(__file__)}/templates')
     template_env = jinja2.Environment(loader=template_loader)
     template = template_env.get_template(template_file)
-    output_html = template.render(content)
+    output_html = template.render(sheet_variables)
 
     options = {
         'page-size': page_size,
@@ -301,3 +421,68 @@ def generate_template_to_pdf(template_file: str, content: dict, output_file: str
         'enable-local-file-access': None
     }
     pdfkit.from_string(output_html, output_file, options=options)
+
+
+def chunked(data: list, per_chunk: int) -> list:
+    return [data[i:i + per_chunk] for i in range(0, len(data), per_chunk)]
+
+
+def add_account_type_data(sheet_variables: typing.Dict[str, typing.Any],
+                          account_types: AccountTypesConfig) -> typing.Dict[str, typing.Any]:
+    if account_types.ccs and account_types.ccs.name:
+        sheet_variables['ccs'] = account_types.ccs.name
+    if account_types.ccs and account_types.ccs.link:
+        sheet_variables['link'] = account_types.ccs.link
+    if account_types.linux:
+        sheet_variables['linux'] = True
+
+    return sheet_variables
+
+
+def write_password_sheets(template: str, output_file: str, accounts: typing.Dict[str, Account],
+                          title: typing.Optional[str], footer: typing.Optional[str], banner: typing.Optional[str],
+                          account_types: AccountTypesConfig, page_size: str) -> None:
+    sheet_variables = {
+        'accounts': [account for _, account in accounts.items()],
+        'title': title,
+        'footer': footer,
+        'banner': os.path.abspath(banner),
+        'page_size': page_size,
+        'ccs': None,
+        'link': None,
+        'linux': False,
+    }
+
+    sheet_variables = add_account_type_data(sheet_variables, account_types)
+
+    generate_template_to_pdf(template, sheet_variables, output_file, page_size)
+    print(f'Written password sheets to {output_file}')
+
+
+def write_master_file(template: str, output_file: str, accounts: typing.Dict[str, Account],
+                      title: typing.Optional[str], footer: typing.Optional[str], banner: typing.Optional[str],
+                      account_types: AccountTypesConfig, page_size: str) -> None:
+    if page_size == 'A4':
+        rows_per_page = 40
+    else:
+        rows_per_page = 41
+    columns_per_page = 3
+    per_page = rows_per_page * columns_per_page
+    pages = [chunked(page, rows_per_page) for page in chunked(list(accounts.values()), per_page)]
+
+    sheet_variables = {
+        'pages': pages,
+        'num_columns': columns_per_page,
+        'date': today_formatted(),
+        'title': title,
+        'footer': footer,
+        'page_size': page_size,
+        'ccs': None,
+        'link': None,
+        'linux': False,
+    }
+
+    sheet_variables = add_account_type_data(sheet_variables, account_types)
+
+    generate_template_to_pdf(template, sheet_variables, output_file, page_size, 'Landscape')
+    print(f'Written master file to {output_file}')

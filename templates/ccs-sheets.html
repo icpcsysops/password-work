@@ -12,7 +12,11 @@
 
         div.page {
             position: relative;
+            {% if page_size == 'A4' %}
             height: 1300px;
+            {% else %}
+            height: 1220px;
+            {% endif %}
         }
 
         .title {
