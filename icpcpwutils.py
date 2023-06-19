@@ -1,4 +1,5 @@
 import argparse
+import csv
 import datetime
 import jinja2
 import os.path
@@ -287,23 +288,23 @@ class Config(object):
 class Account(object):
     id: str
     name: str
+    password: typing.Optional[str] = None
     type: str
     username: str
     team_id: typing.Optional[str]
     ip: typing.Optional[str]
-    password: typing.Optional[str] = None
 
     def __init__(self, id: str, name: str, type: str, username: str, team_id: typing.Optional[str] = None,
                  ip: typing.Optional[str] = None, password: typing.Optional[str] = None) -> None:
         self.id = id
         self.name = name
+        self.password = password
         self.type = type
         self.username = username
         if team_id is not None:
             self.team_id = team_id
         if ip is not None:
             self.ip = ip
-        self.password = password
 
     def generate_password(self, num_words: int) -> None:
         """Generate a random password using the xkcdpass library with the provider number of words"""
@@ -348,15 +349,20 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
     accounts_data = get_yaml_file_contests(file)
     for account in accounts_data:
         id = account.get('id', account['username'])
+        username = account['username']
         ip = None
         if account['type'] == 'team' and id.isdigit() and ip_prefix is not None:
             ip = f'{ip_prefix}.{id}'
-        account = Account(id, account['name'], account['type'], account['username'], None, ip,
-                          account.get('password', None))
-        if not account.password:
-            account.generate_password(number_of_words_per_password)
+        if username in accounts:
+            if ip:
+                accounts[username].ip = ip
+        else:
+            account = Account(id, account['name'], account['type'], account['username'], None, ip,
+                              account.get('password', None))
+            if not account.password:
+                account.generate_password(number_of_words_per_password)
 
-        accounts[account.username] = account
+            accounts[account.username] = account
 
     return accounts
 
@@ -397,11 +403,11 @@ def today_formatted() -> str:
     return datetime.date.today().strftime('%A %d %B %Y')
 
 
-def write_yaml_file(file: str, content: dict) -> None:
+def write_yaml_file(file: str, content: typing.Union[dict, list]) -> None:
     """Write the given content as YAML to the provided file"""
 
     with open(file, 'w') as yaml_file:
-        yaml.dump(content, yaml_file)
+        yaml.dump(content, yaml_file, sort_keys=False)
 
 
 def generate_template_to_pdf(template_file: str, sheet_variables: dict, output_file: str,
@@ -437,6 +443,37 @@ def add_account_type_data(sheet_variables: typing.Dict[str, typing.Any],
         sheet_variables['linux'] = True
 
     return sheet_variables
+
+
+def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
+    output_file = f'{output_folder}/{output_folder}.accounts.yaml'
+    write_yaml_file(output_file, [account.__dict__ for account in accounts.values()])
+
+    print(f'Written accounts YAML to {output_file}')
+
+
+def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
+    output_file = f'{output_folder}/{output_folder}.accounts.tsv'
+    with open(output_file, 'w') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(['accounts', 1])
+        for account in accounts.values():
+            writer.writerow([
+                account.type,
+                account.name,
+                account.username,
+                account.password
+            ])
+
+        print(f'Written accounts TSV to {output_file}')
+
+
+def write_linux_accounts(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
+    output_file = f'{output_folder}/linux-accounts.yaml'
+    unix_accounts = {'users': {account.username: account.password for account in accounts.values()}}
+    write_yaml_file(output_file, unix_accounts)
+
+    print(f'Written Linux accounts to {output_file}')
 
 
 def write_password_sheets(template: str, output_file: str, accounts: typing.Dict[str, Account],

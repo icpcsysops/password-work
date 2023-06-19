@@ -98,6 +98,18 @@ if subcommand == 'contest':
     if page_size is None:
         page_size = config.global_config.page_size
 
+    icpcpwutils.write_accounts_yaml(contest.name, accounts)
+
+    write_tsv = contest.generate_accounts_tsv
+    if write_tsv is None:
+        write_tsv = config.global_config.generate_accounts_tsv
+
+    if write_tsv:
+        icpcpwutils.write_accounts_tsv(contest.name, accounts)
+
+    if account_types.linux:
+        icpcpwutils.write_linux_accounts(contest.name, accounts)
+
     icpcpwutils.write_password_sheets('ccs-sheets.html', f'{contest.name}/{contest.name}_password_sheets.pdf', accounts,
                                       contest.config.name, footer, banner, account_types, page_size)
     icpcpwutils.write_master_file('ccs-master.html', f'{contest.name}/{contest.name}_contest_master.pdf', accounts,
