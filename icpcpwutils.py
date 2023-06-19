@@ -117,21 +117,18 @@ class ChallengeConfig(object):
     banner: typing.Optional[str]
     account_types: AccountTypesConfig
     footer: typing.Optional[str]
-    generate_accounts_tsv: typing.Optional[bool]
     ip_prefix: typing.Optional[bool]
     page_size: str
     number_of_words_per_password: int
     account_files: typing.Sequence[ChallengeAccountFileConfig]
 
     def __init__(self, title: str, banner: typing.Optional[str] = None, account_types: dict = None,
-                 footer: typing.Optional[str] = None, generate_accounts_tsv: typing.Optional[bool] = None,
-                 ip_prefix: typing.Optional[bool] = None, page_size: str = None,
+                 footer: typing.Optional[str] = None, ip_prefix: typing.Optional[bool] = None, page_size: str = None,
                  number_of_words_per_password: int = None, account_files: typing.Sequence[dict] = None) -> None:
         self.title = title
         self.banner = banner
         self.account_types = AccountTypesConfig(**account_types)
         self.footer = footer
-        self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
         self.page_size = page_size
         self.number_of_words_per_password = number_of_words_per_password
