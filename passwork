@@ -105,7 +105,10 @@ if subcommand == 'contest':
         write_tsv = config.global_config.generate_accounts_tsv
 
     if write_tsv:
-        icpcpwutils.write_accounts_tsv(contest.name, accounts)
+        icpcpwutils.write_accounts_tsv(contest.name, accounts, [
+            f'{config.global_config.contests_folder}/{contest.name}/config',
+            f'{config.global_config.contests_folder}/{contest.name}',
+        ])
 
     if account_types.linux:
         icpcpwutils.write_linux_accounts(contest.name, accounts)

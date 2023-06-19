@@ -1,6 +1,8 @@
 import argparse
 import csv
 import datetime
+import shutil
+
 import jinja2
 import os.path
 import pdfkit
@@ -452,7 +454,8 @@ def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account])
     print(f'Written accounts YAML to {output_file}')
 
 
-def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
+def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account],
+                       possible_contest_dirs: typing.Sequence[str] = None) -> None:
     output_file = f'{output_folder}/{output_folder}.accounts.tsv'
     with open(output_file, 'w') as f:
         writer = csv.writer(f, delimiter='\t')
@@ -465,7 +468,18 @@ def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account]) 
                 account.password
             ])
 
-        print(f'Written accounts TSV to {output_file}')
+    print(f'Written accounts TSV to {output_file}')
+
+    if possible_contest_dirs:
+        for contest_dir in possible_contest_dirs:
+            if os.path.isdir(contest_dir):
+                contest_accounts_tsv = f'{contest_dir}/accounts.tsv'
+                if os.path.exists(contest_accounts_tsv):
+                    os.remove(contest_accounts_tsv)
+                shutil.copy(output_file, contest_accounts_tsv)
+
+                print(f'TSV copied to {contest_accounts_tsv}')
+                break
 
 
 def write_linux_accounts(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
