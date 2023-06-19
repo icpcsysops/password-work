@@ -62,7 +62,6 @@ challenge:
       add_organization: yes
   # The challenge mode only takes the following global settings into account:
   # - footer
-  # - generate_accounts_tsv
   # - ip_prefix
   # - page_size
   # - number_of_words_per_password
