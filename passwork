@@ -44,13 +44,14 @@ if subcommand == 'contest':
 
     mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
 
-    number_of_words_per_password = contest.number_of_words_per_password
-    if number_of_words_per_password is None:
-        number_of_words_per_password = config.global_config.number_of_words_per_password
-
-    ip_prefix = contest.ip_prefix
-    if ip_prefix is None:
-        ip_prefix = config.global_config.ip_prefix
+    number_of_words_per_password = contest.contest_option_or_global('number_of_words_per_password',
+                                                                    config.global_config)
+    ip_prefix = contest.contest_option_or_global('ip_prefix', config.global_config)
+    additional_account_files = contest.contest_option_or_global('additional_account_files', config.global_config, [])
+    footer = contest.contest_option_or_global('footer', config.global_config)
+    account_types = contest.contest_option_or_global('account_types', config.global_config)
+    page_size = contest.contest_option_or_global('page_size', config.global_config)
+    generate_accounts_tsv = contest.contest_option_or_global('generate_accounts_tsv', config.global_config)
 
     accounts = {}
     if mode == 'generate':
@@ -63,18 +64,8 @@ if subcommand == 'contest':
         teams_file = f'{config.global_config.contests_folder}/{contest.name}/config/teams.json'
     accounts = icpcpwutils.add_team_accounts(accounts, teams_file, number_of_words_per_password, ip_prefix)
 
-    additional_account_files = []
-    if contest.additional_account_files is not None:
-        additional_account_files = contest.additional_account_files
-    elif config.global_config.additional_account_files:
-        additional_account_files = config.global_config.additional_account_files
-
     for file in additional_account_files:
         accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, accounts)
-
-    footer = contest.footer
-    if footer is None:
-        footer = config.global_config.footer
 
     banner = None
     banner_files = [
@@ -90,21 +81,9 @@ if subcommand == 'contest':
             banner = banner_file
             break
 
-    account_types = contest.account_types
-    if account_types is None:
-        account_types = config.global_config.account_types
-
-    page_size = contest.page_size
-    if page_size is None:
-        page_size = config.global_config.page_size
-
     icpcpwutils.write_accounts_yaml(contest.name, accounts)
 
-    write_tsv = contest.generate_accounts_tsv
-    if write_tsv is None:
-        write_tsv = config.global_config.generate_accounts_tsv
-
-    if write_tsv:
+    if generate_accounts_tsv:
         icpcpwutils.write_accounts_tsv(contest.name, accounts, [
             f'{config.global_config.contests_folder}/{contest.name}/config',
             f'{config.global_config.contests_folder}/{contest.name}',
