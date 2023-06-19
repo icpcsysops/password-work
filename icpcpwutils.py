@@ -172,6 +172,15 @@ class ContestConfig(object):
         contest_yaml = get_yaml_file_contests(filename)
         self.config = ContestObject(name=contest_yaml['name'], start_time=contest_yaml[start_time_property])
 
+    def contest_option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
+        if getattr(self, name) is not None:
+            return getattr(self, name)
+
+        if getattr(global_settings, name) is not None:
+            return getattr(global_settings, name)
+
+        return default
+
 
 class Config(object):
     global_config: GlobalSettings
