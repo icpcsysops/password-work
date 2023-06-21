@@ -46,7 +46,7 @@ challenge:
   # If the challenge IS a contest managed by the SysOps team, set it up as a normal contest
   title: ICPC Challenge
   # Location of the banner file to use.
-  banner: ../contests/finals/banner.jpg
+  banner: ../contests/finals/contest/banner.png
   account_types:
     linux: yes
     ccs:
@@ -56,16 +56,20 @@ challenge:
     # To generate accounts for a list of teams, pass teams_file
     - teams_file: icpc-challenge/icpc-challenge-participants.json
     - teams_file: icpc-challenge/icpc-challenge-coaches.json
-      # To generate accounts for a list of teams and add their organization name, also pass organizations_file and set
-      # `add_organization` to yes
+      # To generate accounts for a list of teams and add their organization name, also pass organizations_file
       organizations_file: icpc-challenge/organizations.json
-      add_organization: yes
+      # By default, usernames will start with `team`, followed by the team ID. You can overwrite this by setting
+      # username_prefix
+      username_prefix: coach
   # The challenge mode only takes the following global settings into account:
   # - footer
   # - ip_prefix
-  # - page_size
   # - number_of_words_per_password
+  # - page_size
+  # - account_types
   # You can also specify them explicitly here to override them
+  # Note: if you want to drop any global IP prefix, set it to ''
+  ip_prefix: ''
 contests:
   - # Name of the contest. Has to match the folder of the contest.
     # These folders are relative to the contests_folder specified above.

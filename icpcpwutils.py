@@ -100,14 +100,14 @@ class ChallengeAccountFileConfig(object):
 
     teams_file: str
     organizations_file: typing.Optional[str]
-    add_organization: bool = False
+    username_prefix: typing.Optional[str] = 'team'
 
     def __init__(self, teams_file: str, organizations_file: typing.Optional[str] = None,
-                 add_organization: typing.Optional[bool] = None) -> None:
+                 username_prefix: typing.Optional[str] = None) -> None:
         self.teams_file = teams_file
         self.organizations_file = organizations_file
-        if self.add_organization:
-            self.add_organization = add_organization
+        if username_prefix:
+            self.username_prefix = username_prefix
 
 
 class ChallengeConfig(object):
@@ -134,6 +134,15 @@ class ChallengeConfig(object):
         self.number_of_words_per_password = number_of_words_per_password
         if account_files:
             self.account_files = [ChallengeAccountFileConfig(**account_file) for account_file in account_files]
+
+    def option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
+        if getattr(self, name) is not None:
+            return getattr(self, name)
+
+        if getattr(global_settings, name) is not None:
+            return getattr(global_settings, name)
+
+        return default
 
 
 class ContestConfig(object):
@@ -276,6 +285,10 @@ class Config(object):
             print('Challenge title missing')
             exit(1)
 
+        if self.challenge.banner and not os.path.isfile(self.challenge.banner):
+            print(f'Challenge banner file {self.challenge.banner} missing on disk')
+            exit(1)
+
         if not self.challenge.account_types:
             print('Account types missing for Challenge')
             exit(1)
@@ -301,6 +314,7 @@ class Account(object):
     username: str
     team_id: typing.Optional[str]
     ip: typing.Optional[str]
+    organization: typing.Optional[str]
 
     def __init__(self, id: str, name: str, type: str, username: str, team_id: typing.Optional[str] = None,
                  ip: typing.Optional[str] = None, password: typing.Optional[str] = None) -> None:
@@ -320,6 +334,23 @@ class Account(object):
         wordfile = xkcdpass.xkcd_password.locate_wordfile()
         password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile=wordfile, min_length=4, max_length=6)
         self.password = xkcdpass.xkcd_password.generate_xkcdpassword(password_words, delimiter='-', numwords=num_words)
+
+    def to_yaml_dict(self) -> dict:
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'password': self.password,
+            'type': self.type,
+            'username': self.username,
+        }
+
+        if hasattr(self, 'team_id'):
+            data['team_id'] = self.team_id
+
+        if hasattr(self, 'ip'):
+            data['ip'] = self.ip
+
+        return data
 
 
 def load_config() -> Config:
@@ -376,20 +407,36 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
 
 
 def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
-                      ip_prefix: typing.Optional[str] = None) -> typing.Dict[str, Account]:
+                      ip_prefix: typing.Optional[str] = None, username_prefix: str = 'team',
+                      organizations_file: typing.Optional[str] = None) -> typing.Dict[str, Account]:
     team_data: typing.Sequence[dict] = get_yaml_file_contests(file)
+
+    organizations = {}
+    if organizations_file is not None:
+        organizations = {org['id']: org for org in get_yaml_file_contests(organizations_file)}
+
     for team in team_data:
         team_id = team['id']
-        username = f'team{team_id}'
+        username = f'{username_prefix}{team_id}'
         if username in accounts:
             accounts[username].team_id = team_id
         else:
             ip = None
-            if ip_prefix is not None:
+            if ip_prefix:
                 ip = f'{ip_prefix}.{team_id}'
             account = Account(username, team.get('display_name', team['name']), 'team', username, team_id, ip)
             account.generate_password(number_of_words_per_password)
             accounts[username] = account
+
+        if organizations_file:
+            if 'organization_id' not in team:
+                print(f'Team {team_id} does not have an organization set')
+                exit(1)
+            organization_id = team['organization_id']
+            if organization_id not in organizations:
+                print(f'Team {team_id} has unknown organization {organization_id}')
+                exit(1)
+            accounts[username].organization = organizations[organization_id]['formal_name']
 
     return accounts
 
@@ -455,7 +502,7 @@ def add_account_type_data(sheet_variables: typing.Dict[str, typing.Any],
 
 def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
     output_file = f'{output_folder}/{output_folder}.accounts.yaml'
-    write_yaml_file(output_file, [account.__dict__ for account in accounts.values()])
+    write_yaml_file(output_file, [account.to_yaml_dict() for account in accounts.values()])
 
     print(f'Written accounts YAML to {output_file}')
 
