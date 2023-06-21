@@ -28,7 +28,8 @@ for subcommand in subcommands:
 
     if subcommand.value == 'contest':
         sub_parser.add_argument('contest', help='Contest to use', nargs='?')
-        sub_parser.add_argument('mode', help='Mode to use', nargs='?', choices=[m.value for m in modes])
+
+    sub_parser.add_argument('mode', help='Mode to use', nargs='?', choices=[m.value for m in modes])
 
 args = parser.parse_args()
 
@@ -41,6 +42,9 @@ if subcommand == 'contest':
                                                'Invalid contest')
     contest = next(c for c in config.contests if c.name == contest_name)
     config.validate_contest(contest)
+
+    if not os.path.isdir(contest.name):
+        os.mkdir(contest.name)
 
     mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
 
@@ -94,12 +98,48 @@ if subcommand == 'contest':
 
     icpcpwutils.write_password_sheets('ccs-sheets.html', f'{contest.name}/{contest.name}_password_sheets.pdf', accounts,
                                       contest.config.name, footer, banner, account_types, page_size)
-    icpcpwutils.write_master_file('ccs-master.html', f'{contest.name}/{contest.name}_contest_master.pdf', accounts,
+    icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'{contest.name}/{contest.name}_contest_master.pdf',
+                                  accounts,
                                   contest.config.name, footer, banner, account_types, page_size)
 elif subcommand == 'challenge':
     config.validate_challenge()
 
+    if not os.path.isdir('challenge'):
+        os.mkdir('challenge')
+
     mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
+
+    number_of_words_per_password = config.challenge.option_or_global('number_of_words_per_password',
+                                                                     config.global_config)
+    ip_prefix = config.challenge.option_or_global('ip_prefix', config.global_config)
+    footer = config.challenge.option_or_global('footer', config.global_config)
+    account_types = config.challenge.option_or_global('account_types', config.global_config)
+    page_size = config.challenge.option_or_global('page_size', config.global_config)
+    banner = config.challenge.banner
+
+    accounts = {}
+    if mode == 'generate':
+        # Load existing accounts if any
+        accounts = icpcpwutils.load_accounts(f'challenge/challenge.accounts.yaml', number_of_words_per_password,
+                                             ip_prefix)
+
+    for account_file in config.challenge.account_files:
+        if account_file.organizations_file:
+            accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
+                                                     ip_prefix, account_file.username_prefix,
+                                                     account_file.organizations_file)
+        else:
+            accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
+                                                     ip_prefix, account_file.username_prefix)
+
+    icpcpwutils.write_accounts_yaml('challenge', accounts)
+    icpcpwutils.write_password_sheets('challenge-sheets.html', f'challenge/challenge_password_sheets.pdf', accounts,
+                                      config.challenge.title, footer, banner, account_types, page_size)
+    icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'challenge/challenge_contest_master.pdf', accounts,
+                                  config.challenge.title, footer, banner, account_types, page_size)
+
+    if account_types.linux:
+        icpcpwutils.write_linux_accounts('challenge', accounts)
 elif subcommand == 'cds':
     config.validate_cds()
 
