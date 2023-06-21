@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+
+# We load icpcpwutils first since that will check if packages exist and prints a nice message
+import icpcpwutils
 import os.path
 from argparse import ArgumentParser, RawTextHelpFormatter
-import icpcpwutils
 from questionary import Choice
 
 config = icpcpwutils.load_config()

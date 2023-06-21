@@ -1,13 +1,41 @@
-import argparse
+# These imports are part of the base Python installation, so will always work
 import csv
 import datetime
+import importlib
 import shutil
-
-import jinja2
 import os.path
+import typing
+
+
+# Now check for all installable modules so we can print a nice message
+def check_for_package(package_name: str, using_apt: bool = True, install_name: typing.Optional[str] = None) -> None:
+    try:
+        importlib.import_module(package_name)
+    except ModuleNotFoundError:
+        if install_name is None:
+            install_name = package_name
+        if using_apt:
+            print(f'Python package {package_name} not found, use `sudo apt install python3-{install_name}` to install')
+            exit(1)
+        else:
+            print(f'Python package {package_name} not found, use `sudo pip3 install {install_name}` to install')
+            exit(1)
+
+
+check_for_package('argparse')
+check_for_package('jinja2')
+check_for_package('pdfkit')
+check_for_package('questionary', False)
+check_for_package('xkcdpass.xkcd_password', True, 'xkcdpass')
+check_for_package('yaml')
+
+
+# Note: we could make check_for_package actually assign to variables with the package name, but then IDE's won't give
+# code completion. So we duplicate the imports here
+import argparse
+import jinja2
 import pdfkit
 import questionary
-import typing
 import xkcdpass.xkcd_password
 import yaml
 
