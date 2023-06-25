@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import shutil
 
 # We load icpcpwutils first since that will check if packages exist and prints a nice message
 import icpcpwutils
@@ -103,7 +104,7 @@ if subcommand == 'contest':
                                       contest.config.name, footer, banner, account_types, page_size)
     icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'{contest.name}/{contest.name}_contest_master.pdf',
                                   accounts,
-                                  contest.config.name, footer, banner, account_types, page_size)
+                                  contest.config.name, footer, account_types, page_size)
 elif subcommand == 'challenge':
     config.validate_challenge()
 
@@ -139,12 +140,78 @@ elif subcommand == 'challenge':
     icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf',
                                       accounts,
                                       config.challenge.title, footer, banner, account_types, page_size)
-    icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'challenge/challenge_contest_master.pdf', accounts,
-                                  config.challenge.title, footer, banner, account_types, page_size)
+    icpcpwutils.write_master_file('ccs-and-challenge-master.html', 'challenge/challenge_contest_master.pdf', accounts,
+                                  config.challenge.title, footer, account_types, page_size)
 
     if account_types.linux:
         icpcpwutils.write_linux_accounts('challenge', accounts)
 elif subcommand == 'cds':
     config.validate_cds()
 
+    if not os.path.isdir('cds'):
+        os.mkdir('cds')
+
     mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
+
+    if config.cds.servers_folder and not os.path.isdir(config.cds.servers_folder):
+        os.mkdir(config.cds.servers_folder)
+
+    number_of_words_per_password = config.cds.option_or_global('number_of_words_per_password', config.global_config)
+    footer = config.cds.option_or_global('footer', config.global_config)
+    page_size = config.cds.option_or_global('page_size', config.global_config)
+    banner = config.cds.banner
+
+    cds_config_file = icpcpwutils.load_cds_config_file(config.cds.config)
+
+    accounts_per_server = {}
+    for server in cds_config_file.servers:
+        accounts_per_server[server.name] = {}
+
+    # Load existing accounts when we are generating and not overwriting
+    if mode == "generate":
+        for server in cds_config_file.servers:
+            account_file = f'cds/{server.name}/config/accounts.yaml'
+            if os.path.isfile(account_file):
+                accounts_per_server[server.name] = icpcpwutils.load_accounts(account_file, number_of_words_per_password,
+                                                                             None, accounts_per_server[server.name])
+
+    # Now generate (new) accounts
+    for account in cds_config_file.accounts:
+        for server in account.servers:
+            if server not in accounts_per_server:
+                print(f'Account {account.username} has an unknown server {server}')
+                exit(1)
+
+            # Only add accounts if they don't exist yet
+            if account.username not in accounts_per_server[server]:
+                added_account = icpcpwutils.Account(account.username, account.name, account.type, account.username)
+                added_account.generate_password(number_of_words_per_password)
+                accounts_per_server[server][account.username] = added_account
+            else:
+                accounts_per_server[server][account.username].name = account.name
+
+    # Write the CDS account files
+    for server in cds_config_file.servers:
+        config_folder = f'cds/{server.name}/config'
+        if not os.path.isdir(config_folder):
+            os.mkdir(config_folder)
+
+        icpcpwutils.write_accounts_yaml(config_folder, accounts_per_server[server.name], False)
+
+    icpcpwutils.write_cds_password_sheets('cds-sheets.html', 'cds/CDS_password_sheets.pdf', cds_config_file,
+                                          accounts_per_server,
+                                          footer, banner, page_size)
+    icpcpwutils.write_cds_master_file('cds-master.html', 'cds/CDS_master.pdf', cds_config_file, accounts_per_server,
+                                      footer, page_size)
+
+    if config.cds.servers_folder:
+        for server in cds_config_file.servers:
+            folder = f'{config.cds.servers_folder}/{server.name}/config'
+            os.makedirs(folder, exist_ok=True)
+
+            file = f'{folder}/accounts.yaml'
+            if os.path.isfile(file) or os.path.islink(file):
+                os.unlink(file)
+
+            shutil.copy(f'cds/{server.name}/config/accounts.yaml', file)
+            print(f'Accounts.yaml copied to {file} for server {server.name}')

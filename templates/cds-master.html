@@ -3,60 +3,102 @@
 <head>
     <meta charset="utf-8">
     <style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
+        div.page {
+            position: relative;
+            {% if page_size == 'A4' %}
+            height: 880px;
+            {% else %}
+            height: 910px;
+            {% endif %}
         }
 
-        div {
-            margin-bottom: 1em;
+        h1 {
+            margin-bottom: 0;
         }
 
-        div, th, td {
-            font-size: 20px;
+        div.page-break {
+            page-break-after: always;
         }
 
-        th, td {
-            padding-left: 4px;
-            padding-right: 4px;
+        table {
+            width: 100%;
         }
 
-        th {
-            background-color: lightgray;
+        table td, table th {
+            padding-right: 10px;
+            padding-left: 10px;
+            text-align: left;
         }
 
+        tr {
+            page-break-inside: avoid !important;
+        }
+
+        div.bottom-left {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: left;
+        }
+
+        div.bottom-center {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: center;
+        }
+
+        div.bottom-right {
+            position: absolute;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            text-align: right;
+        }
+
+        .align-center {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
     </style>
 </head>
 
 <body>
-    <h1>CDS Master Password / URL List</h1>
-
-    <div>{{date}}</div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>CDS server</th>
-                <th>username</th>
-                <th>type</th>
-                <th>password</th>
-                <th>name</th>
-                <th>url</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for account in accounts %}
-            <tr>
-                <td>{{ account.server }}</td>
-                <td><code>{{ account.username }}</code></td>
-                <td>{{ account.type }}</td>
-                <td><code>{{ account.password }}</code></td>
-                <td>{{ account.name }}</td>
-                <td><a href="{{ account.url }}">{{ account.url }}</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for page in pages %}
+        <div class="page {% if not loop.last %}page-break{% endif %}">
+            <h1 class="align-center">CDS Master Password / URL List</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CDS server</th>
+                        <th>username</th>
+                        <th>type</th>
+                        <th>password</th>
+                        <th>name</th>
+                        <th>url</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in page %}
+                    <tr>
+                        <td>{{ account.server }}</td>
+                        <td><code>{{ account.username }}</code></td>
+                        <td>{{ account.type }}</td>
+                        <td><code>{{ account.password }}</code></td>
+                        <td>{{ account.name }}</td>
+                        <td><a href="{{ account.url }}">{{ account.url }}</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="bottom-left">{{ date }}</div>
+            <div class="bottom-center">{{ footer }}</div>
+            <div class="bottom-right">Page {{ loop.index }} of {{ pages | length }}</div>
+        </div>
+    {% endfor %}
 </body>
 
 </html>

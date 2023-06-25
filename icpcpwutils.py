@@ -29,7 +29,6 @@ check_for_package('questionary', False)
 check_for_package('xkcdpass.xkcd_password', True, 'xkcdpass')
 check_for_package('yaml')
 
-
 # Note: we could make check_for_package actually assign to variables with the package name, but then IDE's won't give
 # code completion. So we duplicate the imports here
 import argparse
@@ -121,6 +120,15 @@ class CdsConfig(object):
         self.footer = footer
         self.page_size = page_size
         self.number_of_words_per_password = number_of_words_per_password
+
+    def option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
+        if getattr(self, name) is not None:
+            return getattr(self, name)
+
+        if getattr(global_settings, name) is not None:
+            return getattr(global_settings, name)
+
+        return default
 
 
 class ChallengeAccountFileConfig(object):
@@ -292,10 +300,6 @@ class Config(object):
             print(f'CDS config file {self.cds.config} does not exist')
             exit(1)
 
-        if self.cds.servers_folder and not os.path.isdir(self.cds.servers_folder):
-            print(f'CDS server folder {self.cds.servers_folder} does not exist')
-            exit(1)
-
         if not self.cds.page_size and not self.global_config.page_size:
             print('Page size missing for CDS')
             exit(1)
@@ -381,6 +385,37 @@ class Account(object):
         return data
 
 
+class CdsConfigFileServer(object):
+    name: str
+    url: str
+
+    def __init__(self, name: str, url: str):
+        self.name = name
+        self.url = url
+
+
+class CdsConfigFileAccount(object):
+    name: str
+    username: str
+    type: str
+    servers: typing.Sequence[str]
+
+    def __init__(self, name: str, username: str, type: str, servers: typing.Sequence[str]):
+        self.name = name
+        self.username = username
+        self.type = type
+        self.servers = servers
+
+
+class CdsConfigFile(object):
+    servers: typing.Sequence[CdsConfigFileServer]
+    accounts: typing.Sequence[CdsConfigFileAccount]
+
+    def __init__(self, servers: typing.Sequence[dict], accounts: typing.Sequence[dict]):
+        self.servers = [CdsConfigFileServer(**s) for s in servers]
+        self.accounts = [CdsConfigFileAccount(**a) for a in accounts]
+
+
 def load_config() -> Config:
     config_data = get_yaml_file_contests('config.yaml')
     return Config(**config_data)
@@ -424,7 +459,8 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
             if ip:
                 accounts[username].ip = ip
         else:
-            account = Account(id, account['name'], account['type'], account['username'], None, ip,
+            account = Account(id, account.get('name', account['username']), account['type'], account['username'], None,
+                              ip,
                               account.get('password', None))
             if not account.password:
                 account.generate_password(number_of_words_per_password)
@@ -480,6 +516,11 @@ def get_yaml_file_contests(file: str):
         return yaml.safe_load(yaml_file)
 
 
+def load_cds_config_file(file: str) -> CdsConfigFile:
+    data = get_yaml_file_contests(file)
+    return CdsConfigFile(**data)
+
+
 def today_formatted() -> str:
     """Format today's date"""
 
@@ -528,8 +569,11 @@ def add_account_type_data(sheet_variables: typing.Dict[str, typing.Any],
     return sheet_variables
 
 
-def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
-    output_file = f'{output_folder}/{output_folder}.accounts.yaml'
+def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account], prefix_file: bool = True) -> None:
+    if prefix_file:
+        output_file = f'{output_folder}/{output_folder}.accounts.yaml'
+    else:
+        output_file = f'{output_folder}/accounts.yaml'
     write_yaml_file(output_file, [account.to_yaml_dict() for account in accounts.values()])
 
     print(f'Written accounts YAML to {output_file}')
@@ -592,8 +636,8 @@ def write_password_sheets(template: str, output_file: str, accounts: typing.Dict
 
 
 def write_master_file(template: str, output_file: str, accounts: typing.Dict[str, Account],
-                      title: typing.Optional[str], footer: typing.Optional[str], banner: typing.Optional[str],
-                      account_types: AccountTypesConfig, page_size: str) -> None:
+                      title: typing.Optional[str], footer: typing.Optional[str], account_types: AccountTypesConfig,
+                      page_size: str) -> None:
     if page_size == 'A4':
         rows_per_page = 40
     else:
@@ -618,3 +662,56 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
 
     generate_template_to_pdf(template, sheet_variables, output_file, page_size, 'Landscape')
     print(f'Written master file to {output_file}')
+
+
+def write_cds_password_sheets(template: str, output_file: str, cds_config: CdsConfigFile,
+                              accounts_per_server: typing.Dict[str, typing.Dict[str, Account]],
+                              footer: typing.Optional[str], banner: typing.Optional[str], page_size: str) -> None:
+    sheet_variables = {
+        'accounts': _prepare_cds_accounts(cds_config, accounts_per_server),
+        'footer': footer,
+        'banner': os.path.abspath(banner),
+        'page_size': page_size,
+    }
+
+    generate_template_to_pdf(template, sheet_variables, output_file, page_size)
+    print(f'Written CDS password sheets to {output_file}')
+
+
+def _prepare_cds_accounts(cds_config: CdsConfigFile,
+                          accounts_per_server: typing.Dict[str, typing.Dict[str, Account]]) -> typing.Sequence[Account]:
+    url_per_server = {}
+    for server in cds_config.servers:
+        url_per_server[server.name] = server.url
+
+    accounts = []
+    for server in accounts_per_server:
+        for username in accounts_per_server[server]:
+            account = accounts_per_server[server][username]
+            account.server = server
+            account.url = url_per_server[server]
+            accounts.append(account)
+
+    return accounts
+
+
+def write_cds_master_file(template: str, output_file: str, cds_config: CdsConfigFile,
+                          accounts_per_server: typing.Dict[str, typing.Dict[str, Account]],
+                          footer: typing.Optional[str], page_size: str) -> None:
+    accounts = _prepare_cds_accounts(cds_config, accounts_per_server)
+
+    if page_size == 'A4':
+        rows_per_page = 35
+    else:
+        rows_per_page = 36
+    pages = chunked(list(accounts), rows_per_page)
+
+    sheet_variables = {
+        'pages': pages,
+        'date': today_formatted(),
+        'footer': footer,
+        'page_size': page_size,
+    }
+
+    generate_template_to_pdf(template, sheet_variables, output_file, page_size, 'Landscape')
+    print(f'Written CDS master file to {output_file}')

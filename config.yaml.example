@@ -31,11 +31,11 @@ global_settings:
       link: https://domjudge/
 cds:
   # CDS config file to use
-  config: ../password-config/cds-config.yaml
-  # Folder where the CDS servers are configured. Setting this will create symlinks to accounts.yaml. Remove to skip.
+  config: cds-config.yaml
+  # Folder where the CDS servers are configured. Setting this will create copies if each accounts.yaml. Remove to skip.
   servers_folder: ../servers
   # Location of the banner file to use.
-  banner: ../contests/finals/banner.jpg
+  banner: ../contests/finals/contest/banner.png
   # The CDS mode only takes the following global settings into account:
   # - footer
   # - page_size
