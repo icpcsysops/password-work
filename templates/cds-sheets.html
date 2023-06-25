@@ -5,7 +5,11 @@
     <style>
         div.page {
             position: relative;
+            {% if page_size == 'A4' %}
             height: 1300px;
+            {% else %}
+            height: 1210px;
+            {% endif %}
         }
 
         body, td {
