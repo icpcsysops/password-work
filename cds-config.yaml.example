@@ -1,5 +1,5 @@
 #
-# Sample CDS accounts (username name), servers and URLs
+# Sample CDS servers and accounts
 #
 servers:
 - name: cds
@@ -10,7 +10,7 @@ servers:
   url: https://10.3.3.207:9443
 - name: resolver
   url: https://10.3.3.207:8443
-# All accounts that need access to the CDS'es
+# All accounts that need access to the CDSes
 accounts:
 - name: Presentation Admin
   username: presAdmin
