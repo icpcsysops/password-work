@@ -98,7 +98,8 @@ if subcommand == 'contest':
     if account_types.linux:
         icpcpwutils.write_linux_accounts(contest.name, accounts)
 
-    icpcpwutils.write_password_sheets('ccs--and-challenge-sheets.html', f'{contest.name}/{contest.name}_password_sheets.pdf', accounts,
+    icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html',
+                                      f'{contest.name}/{contest.name}_password_sheets.pdf', accounts,
                                       contest.config.name, footer, banner, account_types, page_size)
     icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'{contest.name}/{contest.name}_contest_master.pdf',
                                   accounts,
@@ -135,7 +136,8 @@ elif subcommand == 'challenge':
                                                      ip_prefix, account_file.username_prefix)
 
     icpcpwutils.write_accounts_yaml('challenge', accounts)
-    icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf', accounts,
+    icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf',
+                                      accounts,
                                       config.challenge.title, footer, banner, account_types, page_size)
     icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'challenge/challenge_contest_master.pdf', accounts,
                                   config.challenge.title, footer, banner, account_types, page_size)
