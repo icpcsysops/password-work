@@ -7,8 +7,6 @@ import os.path
 from argparse import ArgumentParser, RawTextHelpFormatter
 from questionary import Choice
 
-config = icpcpwutils.load_config()
-
 subcommands = [
     Choice('Contest passwords', 'contest'),
     Choice('Challenge passwords', 'challenge'),
@@ -35,6 +33,8 @@ for subcommand in subcommands:
     sub_parser.add_argument('mode', help='Mode to use', nargs='?', choices=[m.value for m in modes])
 
 args = parser.parse_args()
+
+config = icpcpwutils.load_config()
 
 subcommand = icpcpwutils.ask_or_argument(args, 'subcommand', 'What do you want to do?', subcommands,
                                          'Invalid subcommand')
