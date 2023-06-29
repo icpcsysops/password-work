@@ -7,112 +7,48 @@ import os.path
 from argparse import ArgumentParser, RawTextHelpFormatter
 from questionary import Choice
 
-subcommands = [
-    Choice('Contest passwords', 'contest'),
-    Choice('Challenge passwords', 'challenge'),
-    Choice('CDS passwords', 'cds'),
-]
-
-modes = [
-    Choice('Generate password for new accounts and generate all sheets', 'generate'),
-    Choice('Drop existing passwords, generate passwords for all accounts and generate sheets', 'force'),
-]
-
 parser = ArgumentParser(
     formatter_class=RawTextHelpFormatter,
     description='ICPC password utility')
 
-subparsers = parser.add_subparsers(dest='subcommand')
-
-for subcommand in subcommands:
-    sub_parser = subparsers.add_parser(subcommand.value, help=subcommand.title)
-
-    if subcommand.value == 'contest':
-        sub_parser.add_argument('contest', help='Contest to use', nargs='?')
-
-    sub_parser.add_argument('mode', help='Mode to use', nargs='?', choices=[m.value for m in modes])
+parser.add_argument('source', help='Source to use. Use --list or -l to view all sources', nargs='?')
+parser.add_argument('-l', '--list', help='List all possible sources', action='store_true')
+parser.add_argument('-f', '--overwrite', help='Force overwrite passwords', action='store_true')
 
 args = parser.parse_args()
 
 config = icpcpwutils.load_config()
 
-subcommand = icpcpwutils.ask_or_argument(args, 'subcommand', 'What do you want to do?', subcommands,
-                                         'Invalid subcommand')
+if args.list:
+    print('Possible sources:')
+    for name, contest in config.contests.items():
+        print(f'- {name}: Contest {contest.config.name} starting at {contest.config.start_time}')
+
+    if config.cds:
+        print('- cds: CDS accounts')
+
+    if config.challenge:
+        print('- challenge: Challenge accounts')
+
+    exit(0)
+
+sources = [Choice(f'{n} - {c.config.name} starting at {c.config.start_time}', n) for n, c in
+           sorted(config.contests.items())]
+if config.cds:
+    sources.append(Choice(f'CDS passwords', 'cds'))
+if config.challenge:
+    sources.append(Choice(f'Challenge passwords', 'challenge'))
+
+source = icpcpwutils.ask_or_argument(args, 'source', 'What source do you want to use?', sources, 'Invalid source')
+if not source:
+    exit(1)
+
 contest = None
-if subcommand == 'contest':
-    contests = [Choice(f'{n} - {c.config.name} starting at {c.config.start_time}', n) for n, c in
-                sorted(config.contests.items())]
-    contest_name = icpcpwutils.ask_or_argument(args, 'contest', 'What contest do you want to use?', contests,
-                                               'Invalid contest')
-    contest = config.contests[contest_name]
-    config.validate_contest(contest_name, contest)
-
-    if not os.path.isdir(contest_name):
-        os.mkdir(contest_name)
-
-    mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
-
-    number_of_words_per_password = contest.contest_option_or_global('number_of_words_per_password',
-                                                                    config.global_config)
-    ip_prefix = contest.contest_option_or_global('ip_prefix', config.global_config)
-    additional_account_files = contest.contest_option_or_global('additional_account_files', config.global_config, [])
-    footer = contest.contest_option_or_global('footer', config.global_config)
-    account_types = contest.contest_option_or_global('account_types', config.global_config)
-    page_size = contest.contest_option_or_global('page_size', config.global_config)
-    generate_accounts_tsv = contest.contest_option_or_global('generate_accounts_tsv', config.global_config)
-
-    accounts = {}
-    if mode == 'generate':
-        # Load existing accounts if any
-        accounts = icpcpwutils.load_accounts(f'{contest_name}/{contest_name}.accounts.yaml',
-                                             number_of_words_per_password, ip_prefix)
-
-    teams_file = f'{config.global_config.contests_folder}/{contest_name}/teams.json'
-    if not os.path.isfile(teams_file):
-        teams_file = f'{config.global_config.contests_folder}/{contest_name}/config/teams.json'
-    accounts = icpcpwutils.add_team_accounts(accounts, teams_file, number_of_words_per_password, ip_prefix)
-
-    for file in additional_account_files:
-        accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, accounts)
-
-    banner = None
-    banner_files = [
-        f'{config.global_config.contests_folder}/{contest_name}/contest/banner.jpg',
-        f'{config.global_config.contests_folder}/{contest_name}/contest/banner.png',
-        f'{config.global_config.contests_folder}/{contest_name}/banner.jpg',
-        f'{config.global_config.contests_folder}/{contest_name}/banner.png',
-        f'{config.global_config.contests_folder}/{contest_name}/config/banner.jpg',
-        f'{config.global_config.contests_folder}/{contest_name}/config/banner.png',
-    ]
-    for banner_file in banner_files:
-        if os.path.isfile(banner_file):
-            banner = banner_file
-            break
-
-    icpcpwutils.write_accounts_yaml(contest_name, accounts)
-
-    if generate_accounts_tsv:
-        icpcpwutils.write_accounts_tsv(contest_name, accounts, [
-            f'{config.global_config.contests_folder}/{contest_name}/config',
-            f'{config.global_config.contests_folder}/{contest_name}',
-        ])
-
-    if account_types.linux:
-        icpcpwutils.write_linux_accounts(contest_name, accounts)
-
-    icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html',
-                                      f'{contest_name}/{contest_name}_password_sheets.pdf', accounts,
-                                      contest.config.name, footer, banner, account_types, page_size)
-    icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'{contest_name}/{contest_name}_contest_master.pdf',
-                                  accounts,
-                                  contest.config.name, footer, account_types, page_size)
-elif subcommand == 'challenge':
+if source == 'challenge' and config.challenge:
     config.validate_challenge()
 
     if not os.path.isdir('challenge'):
         os.mkdir('challenge')
-
-    mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
 
     number_of_words_per_password = config.challenge.option_or_global('number_of_words_per_password',
                                                                      config.global_config)
@@ -123,7 +59,7 @@ elif subcommand == 'challenge':
     banner = config.challenge.banner
 
     accounts = {}
-    if mode == 'generate':
+    if not args.overwrite:
         # Load existing accounts if any
         accounts = icpcpwutils.load_accounts(f'challenge/challenge.accounts.yaml', number_of_words_per_password,
                                              ip_prefix)
@@ -146,13 +82,11 @@ elif subcommand == 'challenge':
 
     if account_types.linux:
         icpcpwutils.write_linux_accounts('challenge', accounts)
-elif subcommand == 'cds':
+elif source == 'cds' and config.cds:
     config.validate_cds()
 
     if not os.path.isdir('cds'):
         os.mkdir('cds')
-
-    mode = icpcpwutils.ask_or_argument(args, 'mode', 'What mode you want to use?', modes, 'Invalid mode')
 
     if config.cds.servers_folder and not os.path.isdir(config.cds.servers_folder):
         os.mkdir(config.cds.servers_folder)
@@ -169,7 +103,7 @@ elif subcommand == 'cds':
         accounts_per_server[server.name] = {}
 
     # Load existing accounts when we are generating and not overwriting
-    if mode == "generate":
+    if not args.overwrite:
         for server in cds_config_file.servers:
             account_file = f'cds/{server.name}/config/accounts.yaml'
             if os.path.isfile(account_file):
@@ -216,3 +150,66 @@ elif subcommand == 'cds':
 
             shutil.copy(f'cds/{server.name}/config/accounts.yaml', file)
             print(f'Accounts.yaml copied to {file} for server {server.name}')
+
+else:
+    contest_name = source
+    contest = config.contests[contest_name]
+    config.validate_contest(contest_name, contest)
+
+    if not os.path.isdir(contest_name):
+        os.mkdir(contest_name)
+
+    number_of_words_per_password = contest.contest_option_or_global('number_of_words_per_password',
+                                                                    config.global_config)
+    ip_prefix = contest.contest_option_or_global('ip_prefix', config.global_config)
+    additional_account_files = contest.contest_option_or_global('additional_account_files', config.global_config, [])
+    footer = contest.contest_option_or_global('footer', config.global_config)
+    account_types = contest.contest_option_or_global('account_types', config.global_config)
+    page_size = contest.contest_option_or_global('page_size', config.global_config)
+    generate_accounts_tsv = contest.contest_option_or_global('generate_accounts_tsv', config.global_config)
+
+    accounts = {}
+    if not args.overwrite:
+        # Load existing accounts if any
+        accounts = icpcpwutils.load_accounts(f'{contest_name}/{contest_name}.accounts.yaml',
+                                             number_of_words_per_password, ip_prefix)
+
+    teams_file = f'{config.global_config.contests_folder}/{contest_name}/teams.json'
+    if not os.path.isfile(teams_file):
+        teams_file = f'{config.global_config.contests_folder}/{contest_name}/config/teams.json'
+    accounts = icpcpwutils.add_team_accounts(accounts, teams_file, number_of_words_per_password, ip_prefix)
+
+    for file in additional_account_files:
+        accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, accounts)
+
+    banner = None
+    banner_files = [
+        f'{config.global_config.contests_folder}/{contest_name}/contest/banner.jpg',
+        f'{config.global_config.contests_folder}/{contest_name}/contest/banner.png',
+        f'{config.global_config.contests_folder}/{contest_name}/banner.jpg',
+        f'{config.global_config.contests_folder}/{contest_name}/banner.png',
+        f'{config.global_config.contests_folder}/{contest_name}/config/banner.jpg',
+        f'{config.global_config.contests_folder}/{contest_name}/config/banner.png',
+    ]
+    for banner_file in banner_files:
+        if os.path.isfile(banner_file):
+            banner = banner_file
+            break
+
+    icpcpwutils.write_accounts_yaml(contest_name, accounts)
+
+    if generate_accounts_tsv:
+        icpcpwutils.write_accounts_tsv(contest_name, accounts, [
+            f'{config.global_config.contests_folder}/{contest_name}/config',
+            f'{config.global_config.contests_folder}/{contest_name}',
+        ])
+
+    if account_types.linux:
+        icpcpwutils.write_linux_accounts(contest_name, accounts)
+
+    icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html',
+                                      f'{contest_name}/{contest_name}_password_sheets.pdf', accounts,
+                                      contest.config.name, footer, banner, account_types, page_size)
+    icpcpwutils.write_master_file('ccs-and-challenge-master.html', f'{contest_name}/{contest_name}_contest_master.pdf',
+                                  accounts,
+                                  contest.config.name, footer, account_types, page_size)
