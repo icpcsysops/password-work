@@ -109,7 +109,7 @@ class GlobalSettings(object):
 class CdsConfig(object):
     """Object representing the CDS data from the configuration"""
 
-    config: str = 'cds-config.yml'
+    config: str = 'cds-config.yaml'
     servers_folder: typing.Optional[str]
     banner: typing.Optional[str]
     footer: typing.Optional[str]
