@@ -34,14 +34,14 @@ Modify both files to your needs. Both contain comments to get you started.
 Now you can run this tool, by running:
 
 ```bash
-[folder of this repo]/passwork
+[folder of this repo]/genpwfiles
 ```
 
 from the folder with your two YAML files. It will then ask you what you want to do.
 There are shorthands for all subcommands, use
 
 ```bash
-[folder of this repo]/passwork -h
+[folder of this repo]/genpwfiles -h
 ```
 
 to get more information about this.
