@@ -72,6 +72,6 @@ challenge:
   # ip_prefix: ''
 # For any contests where you want custom settings, you can create an item in this dictionary with as key the ID of the
 # contest and as value the global settings to overwrite. Example
-contests:
-  finals:
-    ip_prefix: 10.0.0
+# contests:
+#   finals:
+#     ip_prefix: 10.0.0
