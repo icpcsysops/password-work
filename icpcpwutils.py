@@ -76,27 +76,32 @@ class AccountTypesConfig(object):
 class GlobalSettings(object):
     """Object representing the global settings from the configuration"""
 
-    contests_folder: str
+    contests_folder: str = '../contests'
     footer: typing.Optional[str]
     account_types: AccountTypesConfig = None
-    generate_accounts_tsv: typing.Optional[bool]
-    ip_prefix: typing.Optional[bool]
-    page_size: str
-    number_of_words_per_password: int
+    generate_accounts_tsv: bool = False
+    ip_prefix: typing.Optional[str]
+    page_size: str = 'A4'
+    number_of_words_per_password: int = 4
     additional_account_files: typing.Sequence[str] = []
 
-    def __init__(self, contests_folder: str, footer: typing.Optional[str] = None, account_types: dict = None,
-                 generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[bool] = None,
-                 page_size: str = None, number_of_words_per_password: int = None,
+    def __init__(self, contests_folder: typing.Optional[str] = None, footer: typing.Optional[str] = None,
+                 account_types: dict = None, generate_accounts_tsv: typing.Optional[bool] = None,
+                 ip_prefix: typing.Optional[bool] = None, page_size: str = None,
+                 number_of_words_per_password: int = None,
                  additional_account_files: typing.Optional[typing.Sequence[str]] = None) -> None:
-        self.contests_folder = contests_folder
+        if contests_folder:
+            self.contests_folder = contests_folder
         self.footer = footer
         if account_types:
             self.account_types = AccountTypesConfig(**account_types)
-        self.generate_accounts_tsv = generate_accounts_tsv
+        if generate_accounts_tsv:
+            self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
-        self.page_size = page_size
-        self.number_of_words_per_password = number_of_words_per_password
+        if page_size:
+            self.page_size = page_size
+        if number_of_words_per_password:
+            self.number_of_words_per_password = number_of_words_per_password
         if additional_account_files:
             self.additional_account_files = additional_account_files
 
@@ -104,17 +109,18 @@ class GlobalSettings(object):
 class CdsConfig(object):
     """Object representing the CDS data from the configuration"""
 
-    config: str
+    config: str = 'cds-config.yml'
     servers_folder: typing.Optional[str]
     banner: typing.Optional[str]
     footer: typing.Optional[str]
     page_size: str
     number_of_words_per_password: int
 
-    def __init__(self, config: str, servers_folder: typing.Optional[str] = None, banner: typing.Optional[str] = None,
-                 footer: typing.Optional[str] = None, page_size: str = None,
+    def __init__(self, config: typing.Optional[str] = None, servers_folder: typing.Optional[str] = None,
+                 banner: typing.Optional[str] = None, footer: typing.Optional[str] = None, page_size: str = None,
                  number_of_words_per_password: int = None) -> None:
-        self.config = config
+        if config:
+            self.config = config
         self.servers_folder = servers_folder
         self.banner = banner
         self.footer = footer
