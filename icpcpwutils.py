@@ -622,12 +622,14 @@ def write_password_sheets(template: str, output_file: str, accounts: typing.Dict
         'accounts': [account for _, account in accounts.items()],
         'title': title,
         'footer': footer,
-        'banner': os.path.abspath(banner),
         'page_size': page_size,
         'ccs': None,
         'link': None,
         'linux': False,
     }
+
+    if banner:
+        sheet_variables['banner'] = os.path.abspath(banner)
 
     sheet_variables = add_account_type_data(sheet_variables, account_types)
 
@@ -670,9 +672,11 @@ def write_cds_password_sheets(template: str, output_file: str, cds_config: CdsCo
     sheet_variables = {
         'accounts': _prepare_cds_accounts(cds_config, accounts_per_server),
         'footer': footer,
-        'banner': os.path.abspath(banner),
         'page_size': page_size,
     }
+
+    if banner:
+        sheet_variables['banner'] = os.path.abspath(banner)
 
     generate_template_to_pdf(template, sheet_variables, output_file, page_size)
     print(f'Written CDS password sheets to {output_file}')
