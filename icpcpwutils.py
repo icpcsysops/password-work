@@ -190,7 +190,6 @@ class ChallengeConfig(object):
 class ContestConfig(object):
     """Object representing the contest data from the configuration"""
 
-    name: str
     footer: typing.Optional[str]
     generate_accounts_tsv: typing.Optional[bool]
     ip_prefix: typing.Optional[bool]
@@ -201,12 +200,11 @@ class ContestConfig(object):
     config: ContestObject
     uses_config_folder: bool
 
-    def __init__(self, name: str = None, footer: typing.Optional[str] = None,
+    def __init__(self, footer: typing.Optional[str] = None,
                  generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[bool] = None,
                  page_size: str = None, number_of_words_per_password: int = None,
                  additional_account_files: typing.Optional[typing.Sequence[str]] = None,
                  account_types: dict = None) -> None:
-        self.name = name
         self.footer = footer
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
@@ -234,23 +232,28 @@ class Config(object):
     global_config: GlobalSettings
     cds: typing.Optional[CdsConfig] = None
     challenge: typing.Optional[ChallengeConfig] = None
-    contests: typing.Sequence[ContestConfig] = []
+    contests: typing.Dict[str, ContestConfig] = {}
 
     def __init__(self, global_settings: dict, cds: typing.Optional[dict] = None,
-                 challenge: typing.Optional[dict] = None, contests: typing.Sequence[dict] = None) -> None:
+                 challenge: typing.Optional[dict] = None, contests: typing.Dict[str, dict] = None) -> None:
         self.global_config = GlobalSettings(**global_settings)
         if cds:
             self.cds = CdsConfig(**cds)
         if challenge:
             self.challenge = ChallengeConfig(**challenge)
-        if contests:
-            self.contests = [ContestConfig(**c) for c in contests]
 
         self._validate_global()
 
-        for c in self.contests:
-            new_file = f'{self.global_config.contests_folder}/{c.name}/contest.yaml'
-            old_file = f'{self.global_config.contests_folder}/{c.name}/config/contest.yaml'
+        # We know the contest folder exists, now load all contests from it
+        contest_folders = [f.name for f in os.scandir(self.global_config.contests_folder) if f.is_dir()]
+        for contest in contest_folders:
+            new_file = f'{self.global_config.contests_folder}/{contest}/contest.yaml'
+            old_file = f'{self.global_config.contests_folder}/{contest}/config/contest.yaml'
+
+            if contests and contest in contests:
+                c = ContestConfig(**contests[contest])
+            else:
+                c = ContestConfig()
             if os.path.isfile(new_file):
                 c.load_contest_config(new_file, 'start_time')
                 c.uses_config_folder = False
@@ -258,8 +261,17 @@ class Config(object):
                 c.load_contest_config(old_file, 'start-time')
                 c.uses_config_folder = True
             else:
-                print(f'Neither contest.yaml nor config/contest.yaml found for contest {c.name}')
-                exit(1)
+                # No contest.yaml found, skipping
+                continue
+
+            self.contests[contest] = c
+
+        # Now merge in any specific contest configs
+        if contests:
+            for key, value in contests.items():
+                if key not in self.contests:
+                    print(f'Contest {key} not found on disk, but has config')
+                    exit(1)
 
     def _validate_global(self) -> None:
         if not self.global_config:
@@ -274,23 +286,17 @@ class Config(object):
             print(f'Contest folder {self.global_config.contests_folder} does not exist')
             exit(1)
 
-        if self.contests:
-            for i, c in enumerate(self.contests):
-                if not c.name:
-                    print(f'Contest name missing for contest with index {i}')
-                    exit(1)
-
-    def validate_contest(self, contest: ContestConfig) -> None:
+    def validate_contest(self, name: str, contest: typing.Optional[ContestConfig]) -> None:
         if not contest.account_types and not self.global_config.account_types:
-            print(f'Account types missing for contest {contest.name}')
+            print(f'Account types missing for contest {name}')
             exit(1)
 
         if not contest.page_size and not self.global_config.page_size:
-            print(f'Page size missing for contest {contest.name}')
+            print(f'Page size missing for contest {name}')
             exit(1)
 
         if not contest.number_of_words_per_password and not self.global_config.number_of_words_per_password:
-            print(f'Number pf words per password missing for contest {contest.name}')
+            print(f'Number pf words per password missing for contest {name}')
             exit(1)
 
     def validate_cds(self) -> None:
