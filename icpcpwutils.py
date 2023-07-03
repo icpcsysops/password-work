@@ -268,6 +268,9 @@ class Config(object):
 
         # Now merge in any specific contest configs
         if contests:
+            if not isinstance(contests, dict):
+                print('`contests` config key is not a dictionary')
+                exit(1)
             for key, value in contests.items():
                 if key not in self.contests:
                     print(f'Contest {key} not found on disk, but has config')
