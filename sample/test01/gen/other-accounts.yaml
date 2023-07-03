@@ -1,0 +1,16 @@
+# Extra accounts (type, name and user title)  to create in the CCS and Unix
+- type: judge
+  name: Operations
+  username: operations
+- type: judge
+  name: SysOps
+  username: sysops
+- type: judge
+  name: David Van Brackle
+  username: vanb
+- type: judge
+  name: Judge 9
+  username: judge9
+- type: judge
+  name: Judge 10
+  username: judge10

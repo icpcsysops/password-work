@@ -1,0 +1,165 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+
+        body {
+            margin-left: 1.5cm;
+            margin-right: 1.5cm;
+            font-size: 1.3em;
+        }
+
+        div.page {
+            position: relative;
+            {% if page_size == 'A4' %}
+            height: 1300px;
+            {% else %}
+            height: 1210px;
+            {% endif %}
+        }
+
+        .title {
+            font-family: sans-serif;
+            text-align: center;
+            margin-top: 2cm;
+            margin-bottom: 0.5cm;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 2cm;
+            font-size: 1.5em;
+        }
+
+        .account {
+            text-align: center;
+            margin-bottom: 1cm;
+            font-size: 2em;
+            font-weight: 500;
+        }
+        .name {
+            text-align: center;
+            margin-bottom: 1cm;
+            font-size: 2em;
+            font-weight: 200;
+            color: #333;
+        }
+
+        table {
+            margin-bottom: 1em;
+            margin-top: 1cm;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0.5cm 0;
+        }
+
+        td {
+            padding-bottom: 1cm;
+            font-size: 1.5em;
+        }
+
+        td.value {
+            font-size: 2.3em;
+            white-space: nowrap;
+            vertical-align: bottom;
+        }
+
+        td.value.link {
+            font-size: 1.9em;
+        }
+
+        div.page-break {
+            page-break-after: always;
+        }
+
+        img {
+            width: 100%
+        }
+
+        div.bottom-center {
+            position: absolute;
+            right: 0;
+            left: 0px;
+            bottom: 0;
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .padding-bottom {
+            padding-bottom: 1em;
+        }
+
+    </style>
+</head>
+
+<body>
+    {% for account in accounts %}
+        <div class="page {% if not loop.last %}page-break{% endif %}">
+            {% if banner %}
+                <img src="file://{{ banner }}"/>
+            {% endif %}
+
+            <h1 class="title">{{ title }}</h1>
+            <p class="subtitle">Account/Password Information</p>
+
+            <h2 class="name">{{ account.name }}</h2>
+            {% if account.organization %}
+                <h2 class="account">{{ account.organization }}</h2>
+            {% endif %}
+
+            <table>
+                {% if ccs or linux %}
+                <tr>
+                    <td colspan="2">
+                        <strong>
+                            {% if ccs and linux %}
+                                {{ ccs }} / Linux credentials
+                            {% elif ccs %}
+                                {{ ccs }} credentials
+                            {% elif linux %}
+                                Linux credentials
+                            {% endif %}
+                        </strong>
+                    </td>
+                </tr>
+                {% endif %}
+                {% if link %}
+                <tr>
+                    <td>Link</td>
+                    <td class="value link"><code>{{ link }}</code></td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td>Account name</td>
+                    <td class="value"><code>{{ account.username }}</code></td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td class="value"><code>{{ account.password }}</code></td>
+                </tr>
+            </table>
+            <div>
+                Notes:
+                <ul>
+                    <li>Passwords are CASE SENSITIVE: be sure to type your password EXACTLY as shown above.</li>
+                </ul>
+            </div>
+
+            {% if footer %}
+                <div class="bottom-center">{{ footer }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+
+</html>

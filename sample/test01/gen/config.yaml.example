@@ -1,0 +1,77 @@
+# Example configuration file for the password utility.
+# This file contains global configuration, CDS configuration, ICPC Challenge configuration and per contest settings.
+global_settings:
+  # Folder where the contests can be found. Relative to where this script is ran from. Defaults to `../contests`
+  # contests_folder: ../contests
+  # Global footer to use. Can be overriden per contest.
+  footer: ICPC World Finals Dhaka
+  # Whether to also generate the accounts.tsv file. By default, this will not be done since it is a legacy file format.
+  # Can be overriden per contest.
+  generate_accounts_tsv: yes
+  # IP prefix to use for accounts in the CCS. Omit to not set IP addresses
+  # ip_prefix: 10.0.0
+  # Page size for printing. Either `A4` or `LETTER`. Defaults to A4
+  # page_size: A4
+  # The number of words per password. Defaults to 4
+  # number_of_words_per_password: 4
+  # Additional account YAML files to load. Omit to not use
+  # additional_account_files:
+  #   - other-accounts.yaml
+  # Account types to use. Must be a dictionary where keys are the supported account types and the values are the
+  # configuration for that type. Valid account types are:
+  # - `linux`: use the account for Linux login. Value should be `yes`
+  # - `ccs`: use the account for a CCS. Value should be a dictionary with two keys:
+  #   - `name`: name of the CCS
+  #   - `link`: link to the CCS
+  #   Both options are optional and the PDFs will use generic data if not supplied.
+  account_types:
+    linux: yes
+    ccs:
+      name: DOMjudge
+      link: https://domjudge/
+cds:
+  # CDS config file to use. Defaults to cds-config.yaml
+  # config: cds-config.yaml
+  # Folder where the CDS servers are configured. Setting this will create symlinks to accounts.yaml. Remove to skip.
+  servers_folder: ../servers
+  # Location of the banner file to use.
+  banner: ../contests/finals/contest/banner.png
+  # The CDS mode only takes the following global settings into account:
+  # - footer
+  # - page_size
+  # - number_of_words_per_password
+  # You can also specify them explicitly here to override them
+challenge:
+  # The challenge requires you to set a title manually, since it's not linked to a contest in general.
+  # If the challenge IS a contest managed by the SysOps team, set it up as a normal contest
+  title: ICPC Challenge
+  # Location of the banner file to use.
+  banner: ../contests/finals/contest/banner.png
+  account_types:
+    linux: yes
+    ccs:
+      name: Codeforces
+      link: https://icpcdhaka.contest.codeforces.com/
+  account_files:
+    # To generate accounts for a list of teams, pass teams_file
+    - teams_file: icpc-challenge/icpc-challenge-participants.json
+    - teams_file: icpc-challenge/icpc-challenge-coaches.json
+      # To generate accounts for a list of teams and add their organization name, also pass organizations_file
+      organizations_file: icpc-challenge/organizations.json
+      # By default, usernames will start with `team`, followed by the team ID. You can overwrite this by setting
+      # username_prefix
+      username_prefix: coach
+  # The challenge mode only takes the following global settings into account:
+  # - footer
+  # - ip_prefix
+  # - number_of_words_per_password
+  # - page_size
+  # - account_types
+  # You can also specify them explicitly here to override them
+  # Note: if you want to drop any global IP prefix, set it to ''
+  # ip_prefix: ''
+# For any contests where you want custom settings, you can create an item in this dictionary with as key the ID of the
+# contest and as value the global settings to overwrite. Example
+# contests:
+#   finals:
+#     ip_prefix: 10.0.0
