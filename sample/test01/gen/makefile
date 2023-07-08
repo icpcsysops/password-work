@@ -12,17 +12,12 @@ doc:
 
 t: genpwfiles
 
-	./genpwfiles final
+	$(IDIR)/genpwfiles finals
 
 cpcfg:
 	cp -f -p $(IDIR)/config.yaml.example config.yaml
 
 genpwfiles:
 # TODO - run install to setup files in place of these
-
-	cp -r -p $(IDIR)/genpwfiles .
-	cp -r -p $(IDIR)/*py .
-
 	cp -r -p $(IDIR)/*yaml .
-	cp -r -p $(IDIR)/templates .
 

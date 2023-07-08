@@ -70,9 +70,8 @@ challenge:
   # You can also specify them explicitly here to override them
   # Note: if you want to drop any global IP prefix, set it to ''
   ip_prefix: ''
-contests:
-  - # Name of the contest. Has to match the folder of the contest.
-    # These folders are relative to the contests_folder specified above.
-    # THe contest.yaml from the folder will be used to get the contest name.
-    name: finals
-    # To override the global options, repeat them here.
+# For any contests where you want custom settings, you can create an item in this dictionary with as key the ID of the
+# contest and as value the global settings to overwrite. Example
+# contests:
+#   finals:
+#     ip_prefix: 10.0.0
