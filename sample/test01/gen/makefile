@@ -1,6 +1,6 @@
 
 #
-# test for genpwfiles
+# makefile - setup and run test for genpwfiles
 #
 
 IDIR=../../..
@@ -11,13 +11,22 @@ doc:
 	@echo cpcfg - overwrite config.yaml with config.yaml.example 
 
 t: genpwfiles
-
-	$(IDIR)/genpwfiles finals
+	./genpwfiles finals
 
 cpcfg:
 	cp -f -p $(IDIR)/config.yaml.example config.yaml
 
 genpwfiles:
 # TODO - run install to setup files in place of these
-	cp -r -p $(IDIR)/*yaml .
 
+	cp -f  -p $(IDIR)/genpwfiles .
+	chmod +x genpwfiles 
+
+	cp  -p $(IDIR)/*py .
+
+	cp  -p $(IDIR)/*yaml* .
+	cp  -p config.yaml.example config.yaml
+
+	cp -r -p $(IDIR)/templates .
+
+# eof makfile
