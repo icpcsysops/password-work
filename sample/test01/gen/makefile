@@ -6,12 +6,19 @@
 IDIR=../../..
 
 doc:
-	@echo t - run test
+	@echo t - run test on contest finals
+	@echo dress - run test on contest dress
+
 	@echo genpwfiles - copy scripts and other files for test
 	@echo cpcfg - overwrite config.yaml with config.yaml.example 
 
+# test with new contest.yaml location, finals/contest.yaml
 t: genpwfiles
 	./genpwfiles finals
+
+# test with contest.yaml location, dress/config/contest.yaml
+dress: genpwfiles
+	./genpwfiles dress
 
 cpcfg:
 	cp -f -p $(IDIR)/config.yaml.example config.yaml
@@ -29,4 +36,4 @@ genpwfiles:
 
 	cp -r -p $(IDIR)/templates .
 
-# eof makfile
+# eof makefile
