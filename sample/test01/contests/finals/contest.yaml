@@ -2,6 +2,21 @@
 #
 #
 #
+#
+name: Mock Finals contest name
+
+# TODO update start time as needed (Eastern time) - may need to update if cloud
+# server's are elsewhere.
+start-time:        2023-05-29T10:00:00-04:00
+start_time:        2023-05-29T10:00:00-04:00
+duration:  05:00:00
+scoreboard-freeze-length: 01:00:00
+penalty-time: 20
+
+
+#
+#
+#
 
 # empty
 
