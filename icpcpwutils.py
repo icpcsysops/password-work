@@ -2,6 +2,7 @@
 import csv
 import datetime
 import importlib
+import json
 import shutil
 import os.path
 import typing
@@ -488,11 +489,11 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
 def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
                       ip_prefix: typing.Optional[str] = None, username_prefix: str = 'team',
                       organizations_file: typing.Optional[str] = None) -> typing.Dict[str, Account]:
-    team_data: typing.Sequence[dict] = get_yaml_file_contests(file)
+    team_data: typing.Sequence[dict] = get_json_file_contests(file)
 
     organizations = {}
     if organizations_file is not None:
-        organizations = {org['id']: org for org in get_yaml_file_contests(organizations_file)}
+        organizations = {org['id']: org for org in get_json_file_contests(organizations_file)}
 
     for team in team_data:
         team_id = team['id']
@@ -521,7 +522,7 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
 
 
 def get_yaml_file_contests(file: str):
-    """Read the given YAML (or JSON) file and return it's content"""
+    """Read the given YAML file and return it's content"""
 
     if not os.path.isfile(file):
         print(f'File {file} not found')
@@ -529,6 +530,17 @@ def get_yaml_file_contests(file: str):
 
     with open(file, 'r') as yaml_file:
         return yaml.safe_load(yaml_file)
+
+
+def get_json_file_contests(file: str):
+    """Read the given JSON file and return it's content"""
+
+    if not os.path.isfile(file):
+        print(f'File {file} not found')
+        exit(1)
+
+    with open(file, 'r') as json_file:
+        return json.load(json_file)
 
 
 def load_cds_config_file(file: str) -> CdsConfigFile:
