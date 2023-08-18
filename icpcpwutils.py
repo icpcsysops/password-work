@@ -565,7 +565,9 @@ def generate_template_to_pdf(template_file: str, sheet_variables: dict, output_f
                              page_size: str, orientation: str = 'Portrait') -> None:
     """Write the given content using the given template to the output file as PDF"""
 
-    template_loader = jinja2.FileSystemLoader(searchpath=f'{os.path.dirname(__file__)}/templates')
+    template_folder = f'{os.path.dirname(__file__)}/templates'
+    sheet_variables['template_folder'] = template_folder
+    template_loader = jinja2.FileSystemLoader(searchpath=template_folder)
     template_env = jinja2.Environment(loader=template_loader)
     template = template_env.get_template(template_file)
     output_html = template.render(sheet_variables)
