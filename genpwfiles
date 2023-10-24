@@ -131,7 +131,10 @@ elif source == 'cds' and config.cds:
 
     # Write the CDS account files
     for server in cds_config_file.servers:
-        config_folder = f'cds/{server.name}/config'
+        cds_folder = f'cds/{server.name}'
+        if not os.path.isdir(cds_folder):
+            os.mkdir(cds_folder)
+        config_folder = f'{cds_folder}/config'
         if not os.path.isdir(config_folder):
             os.mkdir(config_folder)
 
