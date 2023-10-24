@@ -61,6 +61,8 @@ challenge:
       # By default, usernames will start with `team`, followed by the team ID. You can overwrite this by setting
       # username_prefix
       username_prefix: coach
+      # By default, a Linux account will also be created. Set to no to skip
+      linux: no
   # The challenge mode only takes the following global settings into account:
   # - footer
   # - ip_prefix

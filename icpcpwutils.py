@@ -144,13 +144,20 @@ class ChallengeAccountFileConfig(object):
     teams_file: str
     organizations_file: typing.Optional[str]
     username_prefix: typing.Optional[str] = 'team'
+    name_prefix: typing.Optional[str] = None
+    linux: bool = True
 
     def __init__(self, teams_file: str, organizations_file: typing.Optional[str] = None,
-                 username_prefix: typing.Optional[str] = None) -> None:
+                 username_prefix: typing.Optional[str] = None,
+                 name_prefix: typing.Optional[str] = None, linux: typing.Optional[bool] = None) -> None:
         self.teams_file = teams_file
         self.organizations_file = organizations_file
         if username_prefix:
             self.username_prefix = username_prefix
+        if name_prefix:
+            self.name_prefix = name_prefix
+        if linux is not None:
+            self.linux = linux
 
 
 class ChallengeConfig(object):
@@ -363,9 +370,11 @@ class Account(object):
     team_id: typing.Optional[str]
     ip: typing.Optional[str]
     organization: typing.Optional[str]
+    linux: bool = True
 
     def __init__(self, id: str, name: str, type: str, username: str, team_id: typing.Optional[str] = None,
-                 ip: typing.Optional[str] = None, password: typing.Optional[str] = None) -> None:
+                 ip: typing.Optional[str] = None, password: typing.Optional[str] = None,
+                 linux: typing.Optional[bool] = True) -> None:
         self.id = id
         self.name = name
         self.password = password
@@ -375,6 +384,8 @@ class Account(object):
             self.team_id = team_id
         if ip is not None:
             self.ip = ip
+        if linux is not None:
+            self.linux = linux
 
     def generate_password(self, num_words: int) -> None:
         """Generate a random password using the xkcdpass library with the provider number of words"""
@@ -488,7 +499,8 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
 
 def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
                       ip_prefix: typing.Optional[str] = None, username_prefix: str = 'team',
-                      organizations_file: typing.Optional[str] = None) -> typing.Dict[str, Account]:
+                      name_prefix: typing.Optional[str] = None,
+                      organizations_file: typing.Optional[str] = None, linux: bool = True) -> typing.Dict[str, Account]:
     team_data: typing.Sequence[dict] = get_json_file_contests(file)
 
     organizations = {}
@@ -500,11 +512,15 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
         username = f'{username_prefix}{team_id}'
         if username in accounts:
             accounts[username].team_id = team_id
+            accounts[username].linux = linux
         else:
             ip = None
             if ip_prefix:
                 ip = f'{ip_prefix}.{team_id}'
-            account = Account(username, team.get('display_name', team['name']), 'team', username, team_id, ip)
+            name = team.get('display_name', team['name'])
+            if name_prefix:
+                name = f'{name_prefix}{name}'
+            account = Account(username, name, 'team', username, team_id, ip, None, linux)
             account.generate_password(number_of_words_per_password)
             accounts[username] = account
 
@@ -636,10 +652,30 @@ def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account],
 
 def write_linux_accounts(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
     output_file = f'{output_folder}/linux-accounts.yaml'
-    unix_accounts = {'users': {account.username: account.password for account in accounts.values()}}
+    unix_accounts = {'users': {account.username: account.password for account in accounts.values() if account.linux}}
     write_yaml_file(output_file, unix_accounts)
 
     print(f'Written Linux accounts to {output_file}')
+
+
+def write_codeforces_sheet(output_folder: str, accounts: typing.Dict[str, Account]) -> None:
+    output_file = f'{output_folder}/codeforces-credentials.csv'
+
+    with open(output_file, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(['team id', 'display name', 'login', 'password'])
+        for account in accounts.values():
+            team_id = ''
+            if 'team' in account.username:
+                team_id = account.username.replace('team', '')
+            writer.writerow([
+                team_id,
+                account.name,
+                account.username,
+                account.password
+            ])
+
+    print(f'Written Codeforces credentials to {output_file}')
 
 
 def write_password_sheets(template: str, output_file: str, accounts: typing.Dict[str, Account],

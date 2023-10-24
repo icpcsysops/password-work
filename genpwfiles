@@ -67,11 +67,12 @@ if source == 'challenge' and config.challenge:
     for account_file in config.challenge.account_files:
         if account_file.organizations_file:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, account_file.username_prefix,
-                                                     account_file.organizations_file)
+                                                     ip_prefix, account_file.username_prefix, account_file.name_prefix,
+                                                     account_file.organizations_file, account_file.linux)
         else:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, account_file.username_prefix)
+                                                     ip_prefix, account_file.username_prefix, account_file.name_prefix,
+                                                     None, account_file.linux)
 
     icpcpwutils.write_accounts_yaml('challenge', accounts)
     icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf',
@@ -82,6 +83,9 @@ if source == 'challenge' and config.challenge:
 
     if account_types.linux:
         icpcpwutils.write_linux_accounts('challenge', accounts)
+
+    if account_types.ccs and account_types.ccs.name == 'Codeforces':
+        icpcpwutils.write_codeforces_sheet('challenge', accounts)
 elif source == 'cds' and config.cds:
     config.validate_cds()
 

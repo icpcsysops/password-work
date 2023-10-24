@@ -122,11 +122,11 @@
                 <tr>
                     <td colspan="2">
                         <strong>
-                            {% if ccs and linux %}
+                            {% if ccs and linux and account.linux %}
                                 {{ ccs }} / Linux credentials
                             {% elif ccs %}
                                 {{ ccs }} credentials
-                            {% elif linux %}
+                            {% elif linux and account.linux %}
                                 Linux credentials
                             {% endif %}
                         </strong>
