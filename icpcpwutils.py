@@ -509,14 +509,18 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
 
     for team in team_data:
         team_id = team['id']
-        username = f'{username_prefix}{team_id}'
+        team_label = team_id
+        if 'label' in team:
+            team_label = team['label']
+        username = f'{username_prefix}{team_label}'
+        ip = None
+        if ip_prefix:
+            ip = f'{ip_prefix}.{team_label}'
         if username in accounts:
             accounts[username].team_id = team_id
             accounts[username].linux = linux
+            accounts[username].ip = ip
         else:
-            ip = None
-            if ip_prefix:
-                ip = f'{ip_prefix}.{team_id}'
             name = team.get('display_name', team['name'])
             if name_prefix:
                 name = f'{name_prefix}{name}'
