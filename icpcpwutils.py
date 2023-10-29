@@ -501,11 +501,13 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
                       ip_prefix: typing.Optional[str] = None, username_prefix: str = 'team',
                       name_prefix: typing.Optional[str] = None,
                       organizations_file: typing.Optional[str] = None, linux: bool = True) -> typing.Dict[str, Account]:
-    team_data: typing.Sequence[dict] = get_json_file_contests(file)
+    team_data: typing.List[dict] = get_json_file_contests(file)
 
     organizations = {}
     if organizations_file is not None:
         organizations = {org['id']: org for org in get_json_file_contests(organizations_file)}
+
+    team_data.sort(key=lambda team: team['id'])
 
     for team in team_data:
         team_id = team['id']
@@ -519,7 +521,8 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
         if username in accounts:
             accounts[username].team_id = team_id
             accounts[username].linux = linux
-            accounts[username].ip = ip
+            if ip is not None:
+                accounts[username].ip = ip
         else:
             name = team.get('display_name', team['name'])
             if name_prefix:
@@ -666,6 +669,7 @@ def write_codeforces_sheet(output_folder: str, accounts: typing.Dict[str, Accoun
     output_file = f'{output_folder}/codeforces-credentials.csv'
 
     with open(output_file, 'w') as f:
+        f.write('\ufeff')
         writer = csv.writer(f)
         writer.writerow(['team id', 'display name', 'login', 'password'])
         for account in accounts.values():
