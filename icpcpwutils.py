@@ -463,12 +463,12 @@ def ask(title: str, choices: typing.Dict[str, str], invalid_message: str) -> str
             print(f'{i}: {c} -- {choices[c]}')
         print('You can type either the number or identifier.')
         choice = input('> ')
-        if choice.isdigit():
+        if choice.isdigit() and int(choice) > 0 and int(choice) <= len(choices):
             choice = list(choices.keys())[int(choice) - 1]
         if choice in choices:
             return choice
         else:
-            print(f'{invalid_message} {choice}')
+            print(f'{invalid_message} {choice}', file=sys.stderr)
 
 def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
                   accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:
