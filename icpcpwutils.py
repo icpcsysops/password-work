@@ -5,6 +5,7 @@ import importlib
 import json
 import shutil
 import os.path
+import sys
 import typing
 
 
@@ -451,7 +452,7 @@ def ask_or_argument(args: argparse.Namespace, argument: str, title: str, choices
         if choice in choices:
             return choice
         else:
-            print(f'{invalid_message} {choice}')
+            print(f'{invalid_message} {choice}', file=sys.stderr)
     return ask(title, choices, invalid_message)
 
 
