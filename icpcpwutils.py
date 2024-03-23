@@ -5,29 +5,25 @@ import importlib
 import json
 import shutil
 import os.path
+import sys
 import typing
 
 
 # Now check for all installable modules so we can print a nice message
-def check_for_package(package_name: str, using_apt: bool = True, install_name: typing.Optional[str] = None) -> None:
+def check_for_package(package_name: str, install_name: typing.Optional[str] = None) -> None:
     try:
         importlib.import_module(package_name)
     except ModuleNotFoundError:
         if install_name is None:
             install_name = package_name
-        if using_apt:
-            print(f'Python package {package_name} not found, use `sudo apt install python3-{install_name}` to install')
-            exit(1)
-        else:
-            print(f'Python package {package_name} not found, use `sudo pip3 install {install_name}` to install')
-            exit(1)
+        print(f'Python package {package_name} not found, use `sudo apt install python3-{install_name}` to install')
+        exit(1)
 
 
 check_for_package('argparse')
 check_for_package('jinja2')
 check_for_package('pdfkit')
-check_for_package('questionary', False)
-check_for_package('xkcdpass.xkcd_password', True, 'xkcdpass')
+check_for_package('xkcdpass.xkcd_password', 'xkcdpass')
 check_for_package('yaml')
 
 # Note: we could make check_for_package actually assign to variables with the package name, but then IDE's won't give
@@ -35,7 +31,6 @@ check_for_package('yaml')
 import argparse
 import jinja2
 import pdfkit
-import questionary
 import xkcdpass.xkcd_password
 import yaml
 
@@ -448,24 +443,32 @@ def load_config() -> Config:
     return Config(**config_data)
 
 
-def ask_or_argument(args: argparse.Namespace, argument: str, title: str, choices: typing.Sequence[questionary.Choice],
+def ask_or_argument(args: argparse.Namespace, argument: str, title: str, choices: typing.Dict[str, str],
                     invalid_message: str) -> str:
     """Ask for a question or use the argument supplied"""
 
     if argument in args and getattr(args, argument):
         choice = getattr(args, argument)
-        allowed_choices = [c.value for c in choices]
-        if choice not in allowed_choices:
+        if choice in choices:
+            return choice
+        else:
+            print(f'{invalid_message} {choice}', file=sys.stderr)
+    return ask(title, choices, invalid_message)
+
+
+def ask(title: str, choices: typing.Dict[str, str], invalid_message: str) -> str:
+    while True:
+        print(title)
+        for i, c in enumerate(choices.keys(), 1):
+            print(f'{i}: {c} -- {choices[c]}')
+        print('You can type either the number or identifier.')
+        choice = input('> ')
+        if choice.isdigit():
+            choice = list(choices.keys())[int(choice) - 1]
+        if choice in choices:
+            return choice
+        else:
             print(f'{invalid_message} {choice}')
-            print('Allowed options:')
-            for c in choices:
-                print(f'* {c.value} -- {c.title}')
-            exit(1)
-    else:
-        choice = questionary.select(title, choices).ask()
-
-    return choice
-
 
 def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
                   accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:

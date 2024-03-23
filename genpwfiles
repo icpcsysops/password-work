@@ -5,7 +5,6 @@ import shutil
 import icpcpwutils
 import os.path
 from argparse import ArgumentParser, RawTextHelpFormatter
-from questionary import Choice
 
 parser = ArgumentParser(
     formatter_class=RawTextHelpFormatter,
@@ -32,12 +31,11 @@ if args.list:
 
     exit(0)
 
-sources = [Choice(f'{n} - {c.config.name} starting at {c.config.start_time}', n) for n, c in
-           sorted(config.contests.items())]
+sources = {n: f'{c.config.name} starting at {c.config.start_time}' for n, c in sorted(config.contests.items())}
 if config.cds:
-    sources.append(Choice(f'CDS passwords', 'cds'))
+    sources['cds'] = 'CDS passwords'
 if config.challenge:
-    sources.append(Choice(f'Challenge passwords', 'challenge'))
+    sources['challenge'] = 'Challenge passwords'
 
 source = icpcpwutils.ask_or_argument(args, 'source', 'What source do you want to use?', sources, 'Invalid source')
 if not source:
