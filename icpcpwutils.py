@@ -448,27 +448,26 @@ def ask_or_argument(args: argparse.Namespace, argument: str, title: str, choices
 
     if argument in args and getattr(args, argument):
         choice = getattr(args, argument)
-        if choice not in choices:
+        if choice in choices:
+            return choice
+        else:
             print(f'{invalid_message} {choice}')
-            print('Allowed options:')
-            for c, n in choices.items():
-                print(f'* {c} -- {n}')
-            exit(1)
-    else:
+    return ask(title, choices, invalid_message)
+
+
+def ask(title: str, choices: typing.Dict[str, str], invalid_message: str) -> str:
+    while True:
         print(title)
-        for i, c in enumerate(choices.keys()):
-            print(f'{i + 1}: {c} -- {choices[c]}')
+        for i, c in enumerate(choices.keys(), 1):
+            print(f'{i}: {c} -- {choices[c]}')
         print('You can type either the number or identifier.')
-        print('> ', end='')
-        choice = input()
+        choice = input('> ')
         if choice.isdigit():
             choice = list(choices.keys())[int(choice) - 1]
-        if choice not in choices:
+        if choice in choices:
+            return choice
+        else:
             print(f'{invalid_message} {choice}')
-            exit(1)
-
-    return choice
-
 
 def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
                   accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:
