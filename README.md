@@ -10,7 +10,6 @@ These scripts require Python 3, as well as the following Python packages:
 * `jinja2`
 * `pdfkit`
 * `xkcdpass`
-* `questionary`
 
 It also requires the `wkhtmltopdf` binary.
 
