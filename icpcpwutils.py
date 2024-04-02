@@ -77,14 +77,15 @@ class GlobalSettings(object):
     account_types: AccountTypesConfig = None
     generate_accounts_tsv: bool = False
     ip_prefix: typing.Optional[str]
+    ip_drop_prefix: typing.Optional[str]
     page_size: str = 'A4'
     number_of_words_per_password: int = 4
     additional_account_files: typing.Sequence[str] = []
 
     def __init__(self, contests_folder: typing.Optional[str] = None, footer: typing.Optional[str] = None,
                  account_types: dict = None, generate_accounts_tsv: typing.Optional[bool] = None,
-                 ip_prefix: typing.Optional[bool] = None, page_size: str = None,
-                 number_of_words_per_password: int = None,
+                 ip_prefix: typing.Optional[bool] = None, ip_drop_prefix: typing.Optional[bool] = None,
+                 page_size: str = None, number_of_words_per_password: int = None,
                  additional_account_files: typing.Optional[typing.Sequence[str]] = None) -> None:
         if contests_folder:
             self.contests_folder = contests_folder
@@ -94,6 +95,7 @@ class GlobalSettings(object):
         if generate_accounts_tsv:
             self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
+        self.ip_drop_prefix = ip_drop_prefix
         if page_size:
             self.page_size = page_size
         if number_of_words_per_password:
@@ -162,19 +164,22 @@ class ChallengeConfig(object):
     banner: typing.Optional[str]
     account_types: AccountTypesConfig
     footer: typing.Optional[str]
-    ip_prefix: typing.Optional[bool]
+    ip_prefix: typing.Optional[str]
+    ip_drop_prefix: typing.Optional[str]
     page_size: str
     number_of_words_per_password: int
     account_files: typing.Sequence[ChallengeAccountFileConfig]
 
     def __init__(self, title: str, banner: typing.Optional[str] = None, account_types: dict = None,
-                 footer: typing.Optional[str] = None, ip_prefix: typing.Optional[bool] = None, page_size: str = None,
+                 footer: typing.Optional[str] = None, ip_prefix: typing.Optional[str] = None,
+                 ip_drop_prefix: typing.Optional[str] = None, page_size: str = None,
                  number_of_words_per_password: int = None, account_files: typing.Sequence[dict] = None) -> None:
         self.title = title
         self.banner = banner
         self.account_types = AccountTypesConfig(**account_types)
         self.footer = footer
         self.ip_prefix = ip_prefix
+        self.ip_drop_prefix = ip_drop_prefix
         self.page_size = page_size
         self.number_of_words_per_password = number_of_words_per_password
         if account_files:
@@ -195,7 +200,8 @@ class ContestConfig(object):
 
     footer: typing.Optional[str]
     generate_accounts_tsv: typing.Optional[bool]
-    ip_prefix: typing.Optional[bool]
+    ip_prefix: typing.Optional[str]
+    ip_drop_prefix: typing.Optional[str]
     page_size: str
     number_of_words_per_password: int
     additional_account_files: typing.Optional[typing.Sequence[str]]
@@ -204,13 +210,15 @@ class ContestConfig(object):
     uses_config_folder: bool
 
     def __init__(self, footer: typing.Optional[str] = None,
-                 generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[bool] = None,
-                 page_size: str = None, number_of_words_per_password: int = None,
+                 generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[str] = None,
+                 ip_drop_prefix: typing.Optional[str] = None, page_size: str = None,
+                 number_of_words_per_password: int = None,
                  additional_account_files: typing.Optional[typing.Sequence[str]] = None,
                  account_types: dict = None) -> None:
         self.footer = footer
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
+        self.ip_drop_prefix = ip_drop_prefix
         self.page_size = page_size
         self.number_of_words_per_password = number_of_words_per_password
         self.additional_account_files = additional_account_files
@@ -470,7 +478,9 @@ def ask(title: str, choices: typing.Dict[str, str], invalid_message: str) -> str
         else:
             print(f'{invalid_message} {choice}', file=sys.stderr)
 
+
 def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
+                  ip_drop_prefix: typing.Optional[str] = None,
                   accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:
     if not os.path.isfile(file):
         return {}
@@ -483,8 +493,15 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
         id = account.get('id', account['username'])
         username = account['username']
         ip = None
-        if account['type'] == 'team' and id.isdigit() and ip_prefix is not None:
-            ip = f'{ip_prefix}.{id}'
+        if 'ip' in account:
+            ip = account['ip']
+        else:
+            if account['type'] == 'team':
+                ip_octet = str(id)
+                if ip_drop_prefix is not None:
+                    ip_octet = ip_octet.removeprefix(str(ip_drop_prefix))
+                if ip_octet.isdigit():
+                    ip = f'{ip_prefix}.{int(ip_octet)}'
         if username in accounts:
             if ip:
                 accounts[username].ip = ip
@@ -501,8 +518,8 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
 
 
 def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
-                      ip_prefix: typing.Optional[str] = None, username_prefix: str = 'team',
-                      name_prefix: typing.Optional[str] = None,
+                      ip_prefix: typing.Optional[str] = None, ip_drop_prefix: typing.Optional[str] = None,
+                      username_prefix: str = 'team', name_prefix: typing.Optional[str] = None,
                       organizations_file: typing.Optional[str] = None, linux: bool = True) -> typing.Dict[str, Account]:
     team_data: typing.List[dict] = get_json_file_contests(file)
 
@@ -520,7 +537,11 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
         username = f'{username_prefix}{team_label}'
         ip = None
         if ip_prefix:
-            ip = f'{ip_prefix}.{team_label}'
+            ip_octet = str(team_label)
+            if ip_drop_prefix is not None:
+                ip_octet = ip_octet.removeprefix(str(ip_drop_prefix))
+            if ip_octet.isdigit():
+                ip = f'{ip_prefix}.{int(ip_octet)}'
         if username in accounts:
             accounts[username].team_id = team_id
             accounts[username].linux = linux
