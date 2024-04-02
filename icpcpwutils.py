@@ -540,7 +540,8 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
             ip_octet = str(team_label)
             if ip_drop_prefix is not None:
                 ip_octet = ip_octet.removeprefix(str(ip_drop_prefix))
-            ip = f'{ip_prefix}.{int(ip_octet)}'
+            if ip_octet.isdigit():
+                ip = f'{ip_prefix}.{int(ip_octet)}'
         if username in accounts:
             accounts[username].team_id = team_id
             accounts[username].linux = linux
