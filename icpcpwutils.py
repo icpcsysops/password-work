@@ -15,8 +15,8 @@ def check_for_package(package_name: str, install_name: typing.Optional[str] = No
         importlib.import_module(package_name)
     except ModuleNotFoundError:
         if install_name is None:
-            install_name = package_name
-        print(f'Python package {package_name} not found, use `sudo apt install python3-{install_name}` to install')
+            install_name = f"python3-{package_name}"
+        print(f'Python package {package_name} not found, use `sudo apt install {install_name}` to install')
         exit(1)
 
 
