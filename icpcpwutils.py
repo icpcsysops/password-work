@@ -227,7 +227,7 @@ class ContestConfig(object):
 
     def load_contest_config(self, filename: str, start_time_property: str):
         contest_yaml = get_yaml_file_contests(filename)
-        self.config = ContestObject(name=contest_yaml['name'], start_time=contest_yaml[start_time_property])
+        self.config = ContestObject(name=contest_yaml['name'], start_time=contest_yaml.get(start_time_property))
 
     def contest_option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
         if getattr(self, name) is not None:
