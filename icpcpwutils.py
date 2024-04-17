@@ -741,7 +741,8 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
         rows_per_page = 41
     columns_per_page = 3
     per_page = rows_per_page * columns_per_page
-    pages = [chunked(page, rows_per_page) for page in chunked(list(accounts.values()), per_page)]
+    accounts_to_include = [account for account in accounts.values() if account.type == "team"]
+    pages = [chunked(page, rows_per_page) for page in chunked(accounts_to_include, per_page)]
 
     sheet_variables = {
         'pages': pages,
