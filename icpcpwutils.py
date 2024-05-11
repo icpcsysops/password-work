@@ -225,8 +225,12 @@ class ContestConfig(object):
         if account_types:
             self.account_types = AccountTypesConfig(**account_types)
 
-    def load_contest_config(self, filename: str, start_time_property: str):
+    def load_contest_config(self, filename: str):
         contest_yaml = get_yaml_file_contests(filename)
+        if 'start_time' in contest_yaml:
+            start_time_property = 'start_time'
+        else:
+            start_time_property = 'start-time'
         self.config = ContestObject(name=contest_yaml['name'], start_time=contest_yaml.get(start_time_property))
 
     def contest_option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
@@ -266,10 +270,10 @@ class Config(object):
             else:
                 c = ContestConfig()
             if os.path.isfile(new_file):
-                c.load_contest_config(new_file, 'start_time')
+                c.load_contest_config(new_file)
                 c.uses_config_folder = False
             elif os.path.isfile(old_file):
-                c.load_contest_config(old_file, 'start-time')
+                c.load_contest_config(old_file)
                 c.uses_config_folder = True
             else:
                 # No contest.yaml found, skipping
