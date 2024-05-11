@@ -9,22 +9,29 @@ import sys
 import typing
 
 
-# Now check for all installable modules so we can print a nice message
-def check_for_package(package_name: str, install_name: typing.Optional[str] = None) -> None:
-    try:
-        importlib.import_module(package_name)
-    except ModuleNotFoundError:
-        if install_name is None:
-            install_name = f"python3-{package_name}"
-        print(f'Python package {package_name} not found, use `sudo apt install {install_name}` to install')
+# Check for all installable modules so we can print a nice message.
+def _check_for_packages(package_names: list[str]) -> None:
+    packages_to_install = []
+    for p in package_names:
+        try:
+            importlib.import_module(p)
+        except ModuleNotFoundError:
+            first_dot_index = p.find('.')
+            packages_to_install.append(f'python3-{p}' if first_dot_index == -1 else p[:first_dot_index])
+    if packages_to_install:
+        packages = ' '.join(packages_to_install)
+        print('Install missing python packages with:\n'
+              f'sudo apt install {packages}')
         exit(1)
 
 
-check_for_package('argparse')
-check_for_package('jinja2')
-check_for_package('pdfkit')
-check_for_package('xkcdpass.xkcd_password', 'xkcdpass')
-check_for_package('yaml')
+_check_for_packages([
+    'argparse',
+    'jinja2',
+    'pdfkit',
+    'xkcdpass.xkcd_password',
+    'yaml',
+])
 
 # Note: we could make check_for_package actually assign to variables with the package name, but then IDE's won't give
 # code completion. So we duplicate the imports here
