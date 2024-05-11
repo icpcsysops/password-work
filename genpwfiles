@@ -11,31 +11,24 @@ parser = ArgumentParser(
     description='ICPC password utility')
 
 parser.add_argument('source', help='Source to use. Use --list or -l to view all sources', nargs='?')
-parser.add_argument('-l', '--list', help='List all possible sources', action='store_true')
+parser.add_argument('-l', '--list', help='List all possible sources and exit', action='store_true')
 parser.add_argument('-f', '--overwrite', help='Force overwrite passwords', action='store_true')
 
 args = parser.parse_args()
 
 config = icpcpwutils.load_config()
 
-if args.list:
-    print('Possible sources:')
-    for name, contest in config.contests.items():
-        print(f'- {name}: Contest {contest.config.name} starting at {contest.config.start_time}')
-
-    if config.cds:
-        print('- cds: CDS accounts')
-
-    if config.challenge:
-        print('- challenge: Challenge accounts')
-
-    exit(0)
-
 sources = {n: f'{c.config.name} starting at {c.config.start_time}' for n, c in sorted(config.contests.items())}
 if config.cds:
     sources['cds'] = 'CDS passwords'
 if config.challenge:
     sources['challenge'] = 'Challenge passwords'
+
+if args.list:
+    print('Possible sources:')
+    for k, v in sources.items():
+        print(f'- {k}: {v}')
+    exit(0)
 
 source = icpcpwutils.ask_or_argument(args, 'source', 'What source do you want to use?', sources, 'Invalid source')
 if not source:
