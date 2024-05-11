@@ -23,6 +23,9 @@ if config.cds:
     sources['cds'] = 'CDS passwords'
 if config.challenge:
     sources['challenge'] = 'Challenge passwords'
+if config.global_config.additional_account_files:
+    for f in config.global_config.additional_account_files:
+        sources[f'file {f}'] = f'Additional accounts in {f}'
 
 if args.list:
     print('Possible sources:')
@@ -33,6 +36,16 @@ if args.list:
 source = icpcpwutils.ask_or_argument(args, 'source', 'What source do you want to use?', sources, 'Invalid source')
 if not source:
     exit(1)
+
+if source.startswith('file '):
+    file = source[len('file '):]
+    accounts = icpcpwutils.load_accounts(
+            file,
+            number_of_words_per_password=config.global_config.number_of_words_per_password,
+            regenerate_passwords=True,
+    )
+    icpcpwutils.write_yaml_file(file, [account.to_yaml_dict() for account in accounts.values()])
+    exit(0)
 
 contest = None
 if source == 'challenge' and config.challenge:
