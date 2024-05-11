@@ -492,7 +492,8 @@ def ask(title: str, choices: typing.Dict[str, str], invalid_message: str) -> str
 
 def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typing.Optional[str] = None,
                   ip_drop_prefix: typing.Optional[str] = None,
-                  accounts: typing.Optional[typing.Dict[str, Account]] = None) -> typing.Dict[str, Account]:
+                  accounts: typing.Optional[typing.Dict[str, Account]] = None,
+                  regenerate_passwords: bool = False) -> typing.Dict[str, Account]:
     if not os.path.isfile(file):
         return {}
 
@@ -520,7 +521,7 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
             account = Account(id, account.get('name', account['username']), account['type'], account['username'], None,
                               ip,
                               account.get('password', None))
-            if not account.password:
+            if regenerate_passwords or not account.password:
                 account.generate_password(number_of_words_per_password)
 
             accounts[account.username] = account
