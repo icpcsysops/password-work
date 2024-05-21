@@ -38,6 +38,7 @@ _check_for_packages([
 import argparse
 import jinja2
 import pdfkit
+import re
 import xkcdpass.xkcd_password
 import yaml
 
@@ -457,6 +458,12 @@ class CdsConfigFile(object):
         self.accounts = [CdsConfigFileAccount(**a) for a in accounts]
 
 
+def natural_sort(items: typing.List[dict]) -> typing.List[dict]:
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key['id'])]
+    return sorted(items, key=alphanum_key)
+
+
 def load_config() -> Config:
     config_data = get_yaml_file_contests('config.yaml')
     return Config(**config_data)
@@ -539,7 +546,7 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
     if organizations_file is not None:
         organizations = {org['id']: org for org in get_json_file_contests(organizations_file)}
 
-    team_data.sort(key=lambda team: team['id'])
+    team_data = natural_sort(team_data)
 
     for team in team_data:
         team_id = team['id']
