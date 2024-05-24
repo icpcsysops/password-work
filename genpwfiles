@@ -121,6 +121,8 @@ elif source == 'cds' and config.cds:
                                                                              None, None,
                                                                              accounts_per_server[server.name])
 
+    passwords_per_account = {}
+
     # Now generate (new) accounts
     for account in cds_config_file.accounts:
         for server in account.servers:
@@ -131,7 +133,11 @@ elif source == 'cds' and config.cds:
             # Only add accounts if they don't exist yet
             if account.username not in accounts_per_server[server]:
                 added_account = icpcpwutils.Account(account.username, account.name, account.type, account.username)
-                added_account.generate_password(number_of_words_per_password)
+                if account.username in passwords_per_account:
+                    added_account.password = passwords_per_account[account.username]
+                else:
+                    added_account.generate_password(number_of_words_per_password)
+                    passwords_per_account[account.username] = added_account.password
                 accounts_per_server[server][account.username] = added_account
             else:
                 accounts_per_server[server][account.username].name = account.name
