@@ -87,7 +87,7 @@ class GlobalSettings(object):
     ip_prefix: typing.Optional[str]
     ip_drop_prefix: typing.Optional[str]
     page_size: str = 'A4'
-    number_of_words_per_password: int = 4
+    number_of_words_per_password: int = 3
     additional_account_files: typing.Sequence[str] = []
 
     def __init__(self, contests_folder: typing.Optional[str] = None, footer: typing.Optional[str] = None,

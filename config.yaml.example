@@ -12,8 +12,8 @@ global_settings:
   # ip_prefix: 10.0.0
   # Page size for printing. Either `A4` or `LETTER`. Defaults to A4
   # page_size: A4
-  # The number of words per password. Defaults to 4
-  # number_of_words_per_password: 4
+  # The number of words per password. Defaults to 3
+  # number_of_words_per_password: 3
   # Additional account YAML files to load. Omit to not use
   # additional_account_files:
   #   - other-accounts.yaml
