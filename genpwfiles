@@ -219,7 +219,10 @@ else:
             banner = banner_file
             break
 
-    icpcpwutils.write_accounts_yaml(contest_name, accounts)
+    icpcpwutils.write_accounts_yaml(contest_name, accounts, True, [
+            f'{config.global_config.contests_folder}/{contest_name}/config',
+            f'{config.global_config.contests_folder}/{contest_name}',
+        ])
 
     if generate_accounts_tsv:
         icpcpwutils.write_accounts_tsv(contest_name, accounts, [

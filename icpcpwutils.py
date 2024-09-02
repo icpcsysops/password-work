@@ -662,7 +662,8 @@ def add_account_type_data(sheet_variables: typing.Dict[str, typing.Any],
     return sheet_variables
 
 
-def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account], prefix_file: bool = True) -> None:
+def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account], prefix_file: bool = True,
+                        possible_contest_dirs: typing.Sequence[str] = None) -> None:
     if prefix_file:
         output_file = f'{output_folder}/{output_folder}.accounts.yaml'
     else:
@@ -670,6 +671,17 @@ def write_accounts_yaml(output_folder: str, accounts: typing.Dict[str, Account],
     write_yaml_file(output_file, [account.to_yaml_dict() for account in accounts.values()])
 
     print(f'Written accounts YAML to {output_file}')
+
+    if possible_contest_dirs:
+        for contest_dir in possible_contest_dirs:
+            if os.path.isdir(contest_dir):
+                contest_accounts_yaml = f'{contest_dir}/accounts.yaml'
+                if os.path.exists(contest_accounts_yaml):
+                    os.remove(contest_accounts_yaml)
+                shutil.copy(output_file, contest_accounts_yaml)
+
+                print(f'YAML copied to {contest_accounts_yaml}')
+                break
 
 
 def write_accounts_tsv(output_folder: str, accounts: typing.Dict[str, Account],
