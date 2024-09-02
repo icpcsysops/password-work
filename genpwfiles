@@ -42,9 +42,10 @@ if source.startswith('file '):
     accounts = icpcpwutils.load_accounts(
             file,
             number_of_words_per_password=config.global_config.number_of_words_per_password,
-            regenerate_passwords=True,
+            regenerate_passwords=args.overwrite,
     )
     icpcpwutils.write_yaml_file(file, [account.to_yaml_dict() for account in accounts.values()])
+    print(f'Generated/updated accounts in {file}')
     exit(0)
 
 contest = None
