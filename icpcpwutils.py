@@ -405,8 +405,7 @@ class Account(object):
     def generate_password(self, num_words: int) -> None:
         """Generate a random password using the xkcdpass library with the provider number of words"""
 
-        wordfile = xkcdpass.xkcd_password.locate_wordfile()
-        password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile=wordfile, min_length=4, max_length=6)
+        password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile='eff-short', min_length=4, max_length=6)
         self.password = xkcdpass.xkcd_password.generate_xkcdpassword(password_words, delimiter='-', numwords=num_words)
 
     def to_yaml_dict(self) -> dict:
