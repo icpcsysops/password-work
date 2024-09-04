@@ -386,6 +386,7 @@ class Account(object):
     ip: typing.Optional[str]
     organization: typing.Optional[str]
     linux: bool = True
+    words: list[str]
 
     def __init__(self, id: str, name: str, type: str, username: str, team_id: typing.Optional[str] = None,
                  ip: typing.Optional[str] = None, password: typing.Optional[str] = None,
@@ -402,11 +403,13 @@ class Account(object):
         if linux is not None:
             self.linux = linux
 
+        current_script_directory = os.path.dirname(os.path.abspath(__file__))
+        with open(f'{current_script_directory}/wordlist', 'r') as wordfile:
+            self.words = wordfile.read().splitlines()
+
     def generate_password(self, num_words: int) -> None:
         """Generate a random password using the xkcdpass library with the provider number of words"""
-
-        password_words = xkcdpass.xkcd_password.generate_wordlist(wordfile='eff-short', min_length=4, max_length=6)
-        self.password = xkcdpass.xkcd_password.generate_xkcdpassword(password_words, delimiter='-', numwords=num_words)
+        self.password = xkcdpass.xkcd_password.generate_xkcdpassword(self.words, delimiter='-', numwords=num_words)
 
     def to_yaml_dict(self) -> dict:
         data = {
