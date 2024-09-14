@@ -6,9 +6,9 @@
         div.page {
             position: relative;
             {% if page_size == 'A4' %}
-            height: 880px;
+            height: {{ a4_width }}px;
             {% else %}
-            height: 910px;
+            height: {{ letter_width }}px;
             {% endif %}
         }
 

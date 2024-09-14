@@ -3,6 +3,7 @@ import csv
 import datetime
 import importlib
 import json
+import platform
 import shutil
 import os.path
 import sys
@@ -633,6 +634,16 @@ def generate_template_to_pdf(template_file: str, sheet_variables: dict, output_f
                              page_size: str, orientation: str = 'Portrait') -> None:
     """Write the given content using the given template to the output file as PDF"""
 
+    sheet_variables['a4_height'] = 1300
+    sheet_variables['letter_height'] = 1210
+    system = platform.system()
+    if system in ['Darwin', 'Windows']:
+        sheet_variables['a4_width'] = 880
+        sheet_variables['letter_width'] = 910
+    else:  # Linux
+        sheet_variables['a4_width'] = 960
+        sheet_variables['letter_width'] = 980
+
     template_loader = jinja2.FileSystemLoader(searchpath=f'{os.path.dirname(__file__)}/templates')
     template_env = jinja2.Environment(loader=template_loader)
     template = template_env.get_template(template_file)
@@ -772,6 +783,10 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
         rows_per_page = 40
     else:
         rows_per_page = 41
+
+    if platform.system() == 'Windows':
+        rows_per_page = rows_per_page - 2
+
     columns_per_page = 3
     per_page = rows_per_page * columns_per_page
     accounts_to_include = [account for account in accounts.values() if account.type == "team"]
@@ -837,6 +852,10 @@ def write_cds_master_file(template: str, output_file: str, cds_config: CdsConfig
         rows_per_page = 35
     else:
         rows_per_page = 36
+
+    if platform.system() == 'Windows':
+        rows_per_page = rows_per_page - 2
+
     pages = chunked(list(accounts), rows_per_page)
 
     sheet_variables = {
