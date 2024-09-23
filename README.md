@@ -78,3 +78,12 @@ The templates in `templates/*-master.html` are used to generate these PDFs.
 These are the user _password sheets_, where one page is generated per created account.
 These should be handed out to the end users.
 The templates in `templates/*-sheets.html` are used to generate these PDFs.
+
+## Attribution
+
+Uses the [Twemoji](https://twemoji.twitter.com/) library and graphics for rendering Emoji.
+
+
+Twemoji is Copyright 2020 Twitter, Inc and other contributors<br>
+Code licensed under the MIT License: http://opensource.org/licenses/MIT <br>
+Graphics licensed under CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/

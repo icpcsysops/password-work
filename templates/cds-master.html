@@ -34,6 +34,11 @@
             page-break-inside: avoid !important;
         }
 
+        img.emoji {
+            width: 36px;
+            height: 36px;
+        }
+
         div.bottom-left {
             position: absolute;
             right: 0;
@@ -64,9 +69,17 @@
             margin-right: auto;
         }
     </style>
+    <script src="file://{{ template_folder }}/twemoji.min.js" crossorigin="anonymous"></script>
+    <script>
+        function replaceEmoji() {
+            twemoji.base = 'file://{{ template_folder }}/';
+            twemoji.size = 'twemoji/72x72';
+            twemoji.parse(document.body);
+        }
+    </script>
 </head>
 
-<body>
+<body onload="replaceEmoji()">
     {% for page in pages %}
         <div class="page {% if not loop.last %}page-break{% endif %}">
             <h1 class="align-center">CDS Master Password / URL List</h1>
