@@ -577,7 +577,9 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
         if team_username_min_length is not None and team_username_prefix_char is not None:
             username_length = len(username)
             if username_length < team_username_min_length:
-                username = f'{team_username_prefix_char * (team_username_min_length - username_length)}{username}'
+                prefix_length = team_username_min_length - username_length
+                prefix = team_username_prefix_char * prefix_length
+                username = f'{prefix}{username}'
         username = f'{username_prefix}{username}'
         ip = None
         if ip_prefix:
