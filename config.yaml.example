@@ -10,6 +10,10 @@ global_settings:
   generate_accounts_tsv: yes
   # IP prefix to use for accounts in the CCS. Omit to not set IP addresses
   # ip_prefix: 10.0.0
+  # These two options prefix usernames for teams with the given character up to the minimum length.
+  # For example, the username of team 1 will be `team001` if these are set like this:
+  # team_username_min_length: 3
+  # team_username_prefix_char: '0'
   # Page size for printing. Either `A4` or `LETTER`. Defaults to A4
   # page_size: A4
   # The number of words per password. Defaults to 3

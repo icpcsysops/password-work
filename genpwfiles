@@ -63,6 +63,8 @@ if source == 'challenge' and config.challenge:
     account_types = config.challenge.option_or_global('account_types', config.global_config)
     page_size = config.challenge.option_or_global('page_size', config.global_config)
     banner = config.challenge.banner
+    team_username_min_length = config.challenge.option_or_global('team_username_min_length', config.global_config)
+    team_username_prefix_char = config.challenge.option_or_global('team_username_prefix_char', config.global_config)
 
     accounts = {}
     if not args.overwrite:
@@ -73,13 +75,14 @@ if source == 'challenge' and config.challenge:
     for account_file in config.challenge.account_files:
         if account_file.organizations_file:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, ip_drop_prefix,
+                                                     ip_prefix, ip_drop_prefix, team_username_min_length, team_username_prefix_char,
                                                      account_file.username_prefix, account_file.name_prefix,
                                                      account_file.organizations_file, account_file.linux)
         else:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, ip_drop_prefix, account_file.username_prefix,
-                                                     account_file.name_prefix,None, account_file.linux)
+                                                     ip_prefix, ip_drop_prefix, team_username_min_length, team_username_prefix_char,
+                                                     account_file.username_prefix, account_file.name_prefix, None,
+                                                     account_file.linux)
 
     icpcpwutils.write_accounts_yaml('challenge', accounts)
     icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf',
@@ -189,6 +192,8 @@ else:
     account_types = contest.contest_option_or_global('account_types', config.global_config)
     page_size = contest.contest_option_or_global('page_size', config.global_config)
     generate_accounts_tsv = contest.contest_option_or_global('generate_accounts_tsv', config.global_config)
+    team_username_min_length = contest.contest_option_or_global('team_username_min_length', config.global_config)
+    team_username_prefix_char = contest.contest_option_or_global('team_username_prefix_char', config.global_config)
 
     accounts = {}
     if not args.overwrite:
@@ -200,7 +205,7 @@ else:
     if not os.path.isfile(teams_file):
         teams_file = f'{config.global_config.contests_folder}/{contest_name}/config/teams.json'
     accounts = icpcpwutils.add_team_accounts(accounts, teams_file, number_of_words_per_password, ip_prefix,
-                                             ip_drop_prefix)
+                                             ip_drop_prefix, team_username_min_length, team_username_prefix_char)
 
     for file in additional_account_files:
         accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, ip_drop_prefix, accounts)

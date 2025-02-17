@@ -89,12 +89,16 @@ class GlobalSettings(object):
     page_size: str = 'A4'
     number_of_words_per_password: int = 3
     additional_account_files: typing.Sequence[str] = []
+    team_username_min_length: typing.Optional[int] = None
+    team_username_prefix_char: typing.Optional[str] = None
 
     def __init__(self, contests_folder: typing.Optional[str] = None, footer: typing.Optional[str] = None,
                  account_types: dict = None, generate_accounts_tsv: typing.Optional[bool] = None,
                  ip_prefix: typing.Optional[bool] = None, ip_drop_prefix: typing.Optional[bool] = None,
                  page_size: str = None, number_of_words_per_password: int = None,
-                 additional_account_files: typing.Optional[typing.Sequence[str]] = None) -> None:
+                 additional_account_files: typing.Optional[typing.Sequence[str]] = None,
+                 team_username_min_length: typing.Optional[int] = None,
+                 team_username_prefix_char: typing.Optional[str] = None) -> None:
         if contests_folder:
             self.contests_folder = contests_folder
         self.footer = footer
@@ -110,6 +114,8 @@ class GlobalSettings(object):
             self.number_of_words_per_password = number_of_words_per_password
         if additional_account_files:
             self.additional_account_files = additional_account_files
+        self.team_username_min_length = team_username_min_length
+        self.team_username_prefix_char = team_username_prefix_char
 
 
 class CdsConfig(object):
@@ -177,11 +183,15 @@ class ChallengeConfig(object):
     page_size: str
     number_of_words_per_password: int
     account_files: typing.Sequence[ChallengeAccountFileConfig]
+    team_username_min_length: typing.Optional[int] = None
+    team_username_prefix_char: typing.Optional[str] = None
 
     def __init__(self, title: str, banner: typing.Optional[str] = None, account_types: dict = None,
                  footer: typing.Optional[str] = None, ip_prefix: typing.Optional[str] = None,
                  ip_drop_prefix: typing.Optional[str] = None, page_size: str = None,
-                 number_of_words_per_password: int = None, account_files: typing.Sequence[dict] = None) -> None:
+                 number_of_words_per_password: int = None, account_files: typing.Sequence[dict] = None,
+                 team_username_min_length: typing.Optional[int] = None,
+                 team_username_prefix_char: typing.Optional[str] = None) -> None:
         self.title = title
         self.banner = banner
         self.account_types = AccountTypesConfig(**account_types)
@@ -192,6 +202,8 @@ class ChallengeConfig(object):
         self.number_of_words_per_password = number_of_words_per_password
         if account_files:
             self.account_files = [ChallengeAccountFileConfig(**account_file) for account_file in account_files]
+        self.team_username_min_length = team_username_min_length
+        self.team_username_prefix_char = team_username_prefix_char
 
     def option_or_global(self, name: str, global_settings: GlobalSettings, default: any = None) -> any:
         if getattr(self, name) is not None:
@@ -216,13 +228,16 @@ class ContestConfig(object):
     account_types: AccountTypesConfig = None
     config: ContestObject
     uses_config_folder: bool
+    team_username_min_length: typing.Optional[int] = None
+    team_username_prefix_char: typing.Optional[str] = None
 
     def __init__(self, footer: typing.Optional[str] = None,
                  generate_accounts_tsv: typing.Optional[bool] = None, ip_prefix: typing.Optional[str] = None,
                  ip_drop_prefix: typing.Optional[str] = None, page_size: str = None,
                  number_of_words_per_password: int = None,
                  additional_account_files: typing.Optional[typing.Sequence[str]] = None,
-                 account_types: dict = None) -> None:
+                 account_types: dict = None, team_username_min_length: typing.Optional[int] = None,
+                 team_username_prefix_char: typing.Optional[str] = None) -> None:
         self.footer = footer
         self.generate_accounts_tsv = generate_accounts_tsv
         self.ip_prefix = ip_prefix
@@ -232,6 +247,8 @@ class ContestConfig(object):
         self.additional_account_files = additional_account_files
         if account_types:
             self.account_types = AccountTypesConfig(**account_types)
+        self.team_username_min_length = team_username_min_length
+        self.team_username_prefix_char = team_username_prefix_char
 
     def load_contest_config(self, filename: str):
         contest_yaml = get_yaml_file_contests(filename)
@@ -540,6 +557,7 @@ def load_accounts(file: str, number_of_words_per_password: int, ip_prefix: typin
 
 def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_words_per_password: int,
                       ip_prefix: typing.Optional[str] = None, ip_drop_prefix: typing.Optional[str] = None,
+                      team_username_min_length: typing.Optional[int] = None, team_username_prefix_char: typing.Optional[str] = None,
                       username_prefix: str = 'team', name_prefix: typing.Optional[str] = None,
                       organizations_file: typing.Optional[str] = None, linux: bool = True) -> typing.Dict[str, Account]:
     team_data: typing.List[dict] = get_json_file_contests(file)
@@ -555,7 +573,12 @@ def add_team_accounts(accounts: typing.Dict[str, Account], file: str, number_of_
         team_label = team_id
         if 'label' in team:
             team_label = team['label']
-        username = f'{username_prefix}{team_label}'
+        username = team_label
+        if team_username_min_length is not None and team_username_prefix_char is not None:
+            username_length = len(username)
+            if username_length < team_username_min_length:
+                username = f'{team_username_prefix_char * (team_username_min_length - username_length)}{username}'
+        username = f'{username_prefix}{username}'
         ip = None
         if ip_prefix:
             ip_octet = str(team_label)
