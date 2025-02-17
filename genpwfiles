@@ -59,6 +59,7 @@ if source == 'challenge' and config.challenge:
                                                                      config.global_config)
     ip_prefix = config.challenge.option_or_global('ip_prefix', config.global_config)
     ip_drop_prefix = config.challenge.option_or_global('ip_drop_prefix', config.global_config)
+    ip_offset = config.challenge.option_or_global('ip_offset', config.global_config)
     footer = config.challenge.option_or_global('footer', config.global_config)
     account_types = config.challenge.option_or_global('account_types', config.global_config)
     page_size = config.challenge.option_or_global('page_size', config.global_config)
@@ -70,19 +71,20 @@ if source == 'challenge' and config.challenge:
     if not args.overwrite:
         # Load existing accounts if any
         accounts = icpcpwutils.load_accounts(f'challenge/challenge.accounts.yaml', number_of_words_per_password,
-                                             ip_prefix, ip_drop_prefix)
+                                             ip_prefix, ip_drop_prefix, ip_offset)
 
     for account_file in config.challenge.account_files:
         if account_file.organizations_file:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, ip_drop_prefix, team_username_min_length, team_username_prefix_char,
-                                                     account_file.username_prefix, account_file.name_prefix,
-                                                     account_file.organizations_file, account_file.linux)
+                                                     ip_prefix, ip_drop_prefix, ip_offset, team_username_min_length,
+                                                     team_username_prefix_char, account_file.username_prefix,
+                                                     account_file.name_prefix, account_file.organizations_file,
+                                                     account_file.linux)
         else:
             accounts = icpcpwutils.add_team_accounts(accounts, account_file.teams_file, number_of_words_per_password,
-                                                     ip_prefix, ip_drop_prefix, team_username_min_length, team_username_prefix_char,
-                                                     account_file.username_prefix, account_file.name_prefix, None,
-                                                     account_file.linux)
+                                                     ip_prefix, ip_drop_prefix, ip_offset, team_username_min_length,
+                                                     team_username_prefix_char, account_file.username_prefix,
+                                                     account_file.name_prefix, None, account_file.linux)
 
     icpcpwutils.write_accounts_yaml('challenge', accounts)
     icpcpwutils.write_password_sheets('ccs-and-challenge-sheets.html', f'challenge/challenge_password_sheets.pdf',
@@ -122,7 +124,7 @@ elif source == 'cds' and config.cds:
             account_file = f'cds/{server.name}/config/accounts.yaml'
             if os.path.isfile(account_file):
                 accounts_per_server[server.name] = icpcpwutils.load_accounts(account_file, number_of_words_per_password,
-                                                                             None, None,
+                                                                             None, None, None,
                                                                              accounts_per_server[server.name])
 
     passwords_per_account = {}
@@ -187,6 +189,7 @@ else:
                                                                     config.global_config)
     ip_prefix = contest.contest_option_or_global('ip_prefix', config.global_config)
     ip_drop_prefix = contest.contest_option_or_global('ip_drop_prefix', config.global_config)
+    ip_offset = contest.contest_option_or_global('ip_offset', config.global_config)
     additional_account_files = contest.contest_option_or_global('additional_account_files', config.global_config, [])
     footer = contest.contest_option_or_global('footer', config.global_config)
     account_types = contest.contest_option_or_global('account_types', config.global_config)
@@ -199,16 +202,16 @@ else:
     if not args.overwrite:
         # Load existing accounts if any
         accounts = icpcpwutils.load_accounts(f'{contest_name}/{contest_name}.accounts.yaml',
-                                             number_of_words_per_password, ip_prefix, ip_drop_prefix)
+                                             number_of_words_per_password, ip_prefix, ip_drop_prefix, ip_offset)
 
     teams_file = f'{config.global_config.contests_folder}/{contest_name}/teams.json'
     if not os.path.isfile(teams_file):
         teams_file = f'{config.global_config.contests_folder}/{contest_name}/config/teams.json'
     accounts = icpcpwutils.add_team_accounts(accounts, teams_file, number_of_words_per_password, ip_prefix,
-                                             ip_drop_prefix, team_username_min_length, team_username_prefix_char)
+                                             ip_drop_prefix, ip_offset, team_username_min_length, team_username_prefix_char)
 
     for file in additional_account_files:
-        accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, ip_drop_prefix, accounts)
+        accounts = icpcpwutils.load_accounts(file, number_of_words_per_password, ip_prefix, ip_drop_prefix, ip_offset, accounts)
 
     banner = None
     banner_files = [
