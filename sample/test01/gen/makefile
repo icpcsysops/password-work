@@ -13,11 +13,11 @@ doc:
 	@echo cpcfg - overwrite config.yaml with config.yaml.example 
 
 # test with new contest.yaml location, finals/contest.yaml
-t: genpwfiles
+t: genpwfiles wordlist
 	./genpwfiles finals
 
 # test with contest.yaml location, dress/config/contest.yaml
-dress: genpwfiles
+dress: genpwfiles wordlist
 	./genpwfiles dress
 
 cpcfg:
@@ -35,5 +35,8 @@ genpwfiles:
 	cp  -p config.yaml.example config.yaml
 
 	cp -r -p $(IDIR)/templates .
+
+wordlist:
+	cp -p $(IDIR)/wordlist .
 
 # eof makefile
