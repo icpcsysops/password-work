@@ -24,6 +24,11 @@
             width: 100%
         }
 
+        img.emoji {
+            width: 36px;
+            height: 36px;
+        }
+
         h1, h2, h3 {
             text-align: center;
         }
@@ -65,9 +70,17 @@
         }
 
     </style>
+    <script src="file://{{ template_folder }}/twemoji.min.js" crossorigin="anonymous"></script>
+    <script>
+        function replaceEmoji() {
+            twemoji.base = 'file://{{ template_folder }}/';
+            twemoji.size = 'twemoji/72x72';
+            twemoji.parse(document.body);
+        }
+    </script>
 </head>
 
-<body>
+<body onload="replaceEmoji()">
     {% for account in accounts %}
         <div class="page {% if not loop.last %}page-break{% endif %}">
             {% if banner %}
