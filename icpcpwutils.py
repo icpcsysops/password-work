@@ -823,6 +823,7 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
         'ccs': None,
         'link': None,
         'linux': False,
+        'symbols': ['NWERC', 'BAPC', 'SWERC', 'SEERC', 'EAPC'],
     }
 
     sheet_variables = add_account_type_data(sheet_variables, account_types)
