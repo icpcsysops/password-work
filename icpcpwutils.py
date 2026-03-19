@@ -805,7 +805,7 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
                       title: typing.Optional[str], footer: typing.Optional[str], account_types: AccountTypesConfig,
                       page_size: str) -> None:
     if page_size == 'A4':
-        rows_per_page = 40
+        rows_per_page = 36
     else:
         rows_per_page = 41
     columns_per_page = 3
