@@ -805,9 +805,9 @@ def write_master_file(template: str, output_file: str, accounts: typing.Dict[str
                       title: typing.Optional[str], footer: typing.Optional[str], account_types: AccountTypesConfig,
                       page_size: str) -> None:
     if page_size == 'A4':
-        rows_per_page = 36
+        rows_per_page = 40 - 4
     else:
-        rows_per_page = 41
+        rows_per_page = 41 - 4
     columns_per_page = 3
     per_page = rows_per_page * columns_per_page
     accounts_to_include = [account for account in accounts.values() if account.type == "team"]
@@ -871,9 +871,9 @@ def write_cds_master_file(template: str, output_file: str, cds_config: CdsConfig
     accounts = _prepare_cds_accounts(cds_config, accounts_per_server)
 
     if page_size == 'A4':
-        rows_per_page = 35
+        rows_per_page = 35 - 4
     else:
-        rows_per_page = 36
+        rows_per_page = 36 - 4
     pages = chunked(list(accounts), rows_per_page)
 
     sheet_variables = {
